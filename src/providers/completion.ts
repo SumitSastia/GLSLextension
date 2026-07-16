@@ -13,7 +13,7 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
         const match = beforeCursor.match(/[A-Za-z_]\w*$/);
 
         const currentWord = match? match[0] : "";
-        console.log(currentWord);
+        // console.log(currentWord);
 
         const items: vscode.CompletionItem[] = [];
 
