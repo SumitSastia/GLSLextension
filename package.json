@@ -1,0 +1,66 @@
+{
+  "name": "glslextension",
+  "displayName": "GLSLextension",
+  "description": "GLSL shader syntax highlighter",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.119.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:glsl"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "glslextension.helloWorld",
+        "title": "Hello World"
+      },
+      {
+        "command": "glslextension.readShader",
+        "title": "GLSL: Read Current Shader"
+      }
+    ],
+
+    "languages": [
+      {
+        "id": "glsl",
+        "extensions": [
+          ".vs",
+          ".fs",
+          ".gs",
+          ".vert",
+          ".frag",
+          ".geom",
+          ".glsl",
+          ".comp"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.125.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "typescript-eslint": "^8.61.1",
+    "eslint": "^10.5.0",
+    "typescript": "^6.0.3",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  }
+}
