@@ -10,7 +10,6 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:glsl"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -28,6 +27,10 @@
     "languages": [
       {
         "id": "glsl",
+        "aliases": [
+          "GLSL",
+          "glsl"
+        ],
         "extensions": [
           ".vs",
           ".fs",
@@ -37,7 +40,9 @@
           ".geom",
           ".glsl",
           ".comp"
-        ]
+        ],
+
+        "configuration": "./language-configuration.json"
       }
     ]
   },
