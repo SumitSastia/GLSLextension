@@ -1,5 +1,32 @@
 import * as vscode from "vscode";
-import { SIGNATURE_FUNCTIONS } from "../language/builtInFunctions";
+import { EXPANDED_SIGNATURES } from "../language/signatures/signatureExpander";
+
+function getActiveParameter(text: string): number {
+
+    let depth = 0;
+    let commas = 0;
+
+    for (let i = text.length - 1; i >= 0; --i) {
+
+        const c = text[i];
+
+        if (c === ')')
+            depth++;
+
+        else if (c === '(') {
+
+            if (depth === 0)
+                break;
+
+            depth--;
+        }
+
+        else if (c === ',' && depth === 0)
+            commas++;
+    }
+
+    return commas;
+}
 
 export class GLSLSignatureHelpProvider implements vscode.SignatureHelpProvider {
     
@@ -16,54 +43,12 @@ export class GLSLSignatureHelpProvider implements vscode.SignatureHelpProvider {
         if (!match) return null;
         const functionName = match[1];
 
-        // const func = FUNCTIONS.find(f => f.name == functionName);
-        // if (!func) return null;
-
         const commas = (beforeCursor.match(/,/g) || []).length;
-
-        // const signature = new vscode.SignatureInformation(
-        //     `${func.returnType} ${func.name}(${func.parameters
-        //     .map(p => `${p.type} ${p.name}`)
-        //     .join(", ")})`
-        // );
-
-        // signature.parameters = func.parameters.map(param =>
-        //     new vscode.ParameterInformation(
-        //         `${param.type} ${param.name}`
-        //     )
-        // );
-
-        // help.signatures = [signature];
-        // help.activeParameter = Math.min(commas, func.parameters.length - 1);
-        
-        // return help;
         
         const help = new vscode.SignatureHelp();
-        // help.activeSignature = 0;
-        // help.activeParameter = Math.min(commas, func.parameters.length - 1);
 
-        const overloads = SIGNATURE_FUNCTIONS.filter(s => s.name == functionName);
+        const overloads = EXPANDED_SIGNATURES.filter(s => s.name == functionName);
         if (overloads.length === 0) return null;
-
-        // help.signatures = overloads.map(overload => {
-
-        //     const signature = new vscode.SignatureInformation(
-        //         `${overload.returnType} ${overload.name}(${overload.parameters
-        //         .map(p => `${p.type} ${p.name}`)
-        //         .join(", ")})`
-        //     );
-
-        //     signature.documentation = new vscode.MarkdownString(overload.description);
-
-        //     signature.parameters = overload.parameters.map(param => 
-        //         new vscode.ParameterInformation(
-        //             `${param.type} ${param.name}`,
-        //             param.description
-        //         )
-        //     );
-
-        //     return signature;
-        // });
 
         for (const sign of overloads) {
 
@@ -84,6 +69,9 @@ export class GLSLSignatureHelpProvider implements vscode.SignatureHelpProvider {
 
             help.signatures.push(info);
         }
+
+        help.activeParameter = getActiveParameter(beforeCursor);
+        help.activeSignature = 0;
 
         return help;
     }

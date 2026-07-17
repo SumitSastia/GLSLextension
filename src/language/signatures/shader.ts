@@ -53,12 +53,51 @@ export const GEOMETRY_SHADER_SIGNATURES: GLSLSignature[] = [
 export const FRAGMENT_SHADER_SIGNATURES: GLSLSignature[] = [
 
     {
-        name: "discard",
-        returnType: "void",
-        description: "Discards the current fragment and terminates further processing for it.",
-        category: "Fragment Shader",
+        name: "reflect",
+        returnType: "genType",
+        description: "Calculates the reflection direction for an incident vector.",
+        category: "Geometric",
         version: "1.10",
-        parameters: []
+        parameters: [
+            { type: "genType", name: "I" },
+            { type: "genType", name: "N" }
+        ]
+    },
+    {
+        name: "reflect",
+        returnType: "genDType",
+        description: "Calculates the reflection direction for an incident vector.",
+        category: "Geometric",
+        version: "4.00",
+        parameters: [
+            { type: "genDType", name: "I" },
+            { type: "genDType", name: "N" }
+        ]
+    },
+
+    {
+        name: "refract",
+        returnType: "genType",
+        description: "Calculates the refraction direction for an incident vector.",
+        category: "Geometric",
+        version: "1.10",
+        parameters: [
+            { type: "genType", name: "I" },
+            { type: "genType", name: "N" },
+            { type: "float", name: "eta" }
+        ]
+    },
+    {
+        name: "refract",
+        returnType: "genDType",
+        description: "Calculates the refraction direction for an incident vector.",
+        category: "Geometric",
+        version: "4.00",
+        parameters: [
+            { type: "genDType", name: "I" },
+            { type: "genDType", name: "N" },
+            { type: "double", name: "eta" }
+        ]
     },
 
     {

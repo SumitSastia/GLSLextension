@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 
 import { BUILTIN_CONSTANTS } from "../language/builtInConstants";
+
+// import { SIGNATURE_FUNCTIONS } from "../language/builtInFunctions";
 import { GLSL_FUNCTION_NAMES } from "../language/builtInFunctions";
 import { BUILTIN_UNIFORMS } from "../language/builtInUniforms";
 import { BUILTIN_VARIABLES } from "../language/builtInVariables";
@@ -24,7 +26,6 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
         const match = beforeCursor.match(/[A-Za-z_]\w*$/);
 
         const currentWord = match? match[0] : "";
-        // console.log(currentWord);
 
         const items: vscode.CompletionItem[] = [];
 
@@ -36,6 +37,14 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
             item.detail = constant.description;
             items.push(item);
         }
+
+        // for (const func of SIGNATURE_FUNCTIONS) {
+            
+        //     if (!func.name.startsWith(currentWord)) continue;
+            
+        //     const item = new vscode.CompletionItem(func.name, vscode.CompletionItemKind.Function);
+        //     items.push(item);
+        // }
 
         for (const funcName of GLSL_FUNCTION_NAMES) {
             
