@@ -3,7 +3,8 @@
 
 import { GLSLSignature } from "./signatures/functionFormat";
 
-import { ANGLE_SIGNATURES } from "./signatures/angle";
+import { GEOMETRIC_FUNCTIONS } from "./signatures/geometry";
+import { ANGLE_SIGNATURES } from "./signatures/geometry";
 import { COMMON_SIGNATURES } from "./signatures/common";
 
 import { DERIVATIVE_SIGNATURES } from "./signatures/derivative";
@@ -24,6 +25,7 @@ import { TEXTURE_LOOKUP_SIGNATURES } from "./signatures/textureLookup";
 
 export const SIGNATURE_FUNCTIONS: GLSLSignature[] = [
 
+    ...GEOMETRIC_FUNCTIONS,
     ...ANGLE_SIGNATURES,
     ...COMMON_SIGNATURES,
     ...DERIVATIVE_SIGNATURES,

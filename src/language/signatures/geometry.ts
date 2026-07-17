@@ -1,5 +1,192 @@
 import { GLSLSignature } from "./functionFormat";
 
+export const GEOMETRIC_FUNCTIONS: GLSLSignature[] = [
+
+    {
+        name: "dot",
+        returnType: "float",
+        description: "Returns the dot product of two vectors.",
+        category: "Geometric",
+        version: "1.10",
+        parameters: [
+            { type: "genType", name: "x" },
+            { type: "genType", name: "y" }
+        ]
+    },
+    {
+        name: "dot",
+        returnType: "double",
+        description: "Returns the dot product of two double-precision vectors.",
+        category: "Geometric",
+        version: "4.00",
+        parameters: [
+            { type: "genDType", name: "x" },
+            { type: "genDType", name: "y" }
+        ]
+    },
+
+    {
+        name: "cross",
+        returnType: "vec3",
+        description: "Returns the cross product of two 3-component vectors.",
+        category: "Geometric",
+        version: "1.10",
+        parameters: [
+            { type: "vec3", name: "x" },
+            { type: "vec3", name: "y" }
+        ]
+    },
+    {
+        name: "cross",
+        returnType: "dvec3",
+        description: "Returns the cross product of two 3-component double-precision vectors.",
+        category: "Geometric",
+        version: "4.00",
+        parameters: [
+            { type: "dvec3", name: "x" },
+            { type: "dvec3", name: "y" }
+        ]
+    },
+
+    {
+        name: "length",
+        returnType: "float",
+        description: "Returns the length of a vector.",
+        category: "Geometric",
+        version: "1.10",
+        parameters: [
+            { type: "genType", name: "x" }
+        ]
+    },
+    {
+        name: "length",
+        returnType: "double",
+        description: "Returns the length of a double-precision vector.",
+        category: "Geometric",
+        version: "4.00",
+        parameters: [
+            { type: "genDType", name: "x" }
+        ]
+    },
+
+    {
+        name: "distance",
+        returnType: "float",
+        description: "Returns the distance between two points.",
+        category: "Geometric",
+        version: "1.10",
+        parameters: [
+            { type: "genType", name: "p0" },
+            { type: "genType", name: "p1" }
+        ]
+    },
+    {
+        name: "distance",
+        returnType: "double",
+        description: "Returns the distance between two double-precision points.",
+        category: "Geometric",
+        version: "4.00",
+        parameters: [
+            { type: "genDType", name: "p0" },
+            { type: "genDType", name: "p1" }
+        ]
+    },
+
+    {
+        name: "normalize",
+        returnType: "genType",
+        description: "Returns a normalized vector with length 1.",
+        category: "Geometric",
+        version: "1.10",
+        parameters: [
+            { type: "genType", name: "x" }
+        ]
+    },
+    {
+        name: "normalize",
+        returnType: "genDType",
+        description: "Returns a normalized double-precision vector with length 1.",
+        category: "Geometric",
+        version: "4.00",
+        parameters: [
+            { type: "genDType", name: "x" }
+        ]
+    },
+
+    {
+        name: "faceforward",
+        returnType: "genType",
+        description: "Returns N if dot(Nref, I) < 0, otherwise returns -N.",
+        category: "Geometric",
+        version: "1.10",
+        parameters: [
+            { type: "genType", name: "N" },
+            { type: "genType", name: "I" },
+            { type: "genType", name: "Nref" }
+        ]
+    },
+    {
+        name: "faceforward",
+        returnType: "genDType",
+        description: "Returns N if dot(Nref, I) < 0, otherwise returns -N for double-precision vectors.",
+        category: "Geometric",
+        version: "4.00",
+        parameters: [
+            { type: "genDType", name: "N" },
+            { type: "genDType", name: "I" },
+            { type: "genDType", name: "Nref" }
+        ]
+    },
+
+    {
+        name: "reflect",
+        returnType: "genType",
+        description: "Returns the reflection direction for an incident vector.",
+        category: "Geometric",
+        version: "1.10",
+        parameters: [
+            { type: "genType", name: "I" },
+            { type: "genType", name: "N" }
+        ]
+    },
+    {
+        name: "reflect",
+        returnType: "genDType",
+        description: "Returns the reflection direction for a double-precision incident vector.",
+        category: "Geometric",
+        version: "4.00",
+        parameters: [
+            { type: "genDType", name: "I" },
+            { type: "genDType", name: "N" }
+        ]
+    },
+
+    {
+        name: "refract",
+        returnType: "genType",
+        description: "Computes the refraction vector.",
+        category: "Geometric",
+        version: "1.10",
+        parameters: [
+            { type: "genType", name: "I" },
+            { type: "genType", name: "N" },
+            { type: "float", name: "eta" }
+        ]
+    },
+    {
+        name: "refract",
+        returnType: "genDType",
+        description: "Computes the double-precision refraction vector.",
+        category: "Geometric",
+        version: "4.00",
+        parameters: [
+            { type: "genDType", name: "I" },
+            { type: "genDType", name: "N" },
+            { type: "double", name: "eta" }
+        ]
+    }
+];
+
 export const ANGLE_SIGNATURES: GLSLSignature[] = [
 
     {
