@@ -52,3 +52,50 @@ export const KEYWORDS = [
         description: "Defines a user-defined structure type."
     }
 ];
+
+export const GLSL_KEYWORDS = new Set([
+    
+    "const",
+    "uniform",
+    "layout",
+    "in",
+    "out",
+    "inout",
+
+    "if",
+    "else",
+    "for",
+    "while",
+    "break",
+    "continue",
+    "discard",
+    "return",
+
+    "struct",
+
+    "void",
+    "bool",
+    "int",
+    "uint",
+    "float",
+    "double",
+
+    "vec2",
+    "vec3",
+    "vec4",
+
+    "ivec2",
+    "ivec3",
+    "ivec4",
+
+    "uvec2",
+    "uvec3",
+    "uvec4",
+
+    "mat2",
+    "mat3",
+    "mat4",
+
+    "sampler2D",
+    "samplerCube"
+]);

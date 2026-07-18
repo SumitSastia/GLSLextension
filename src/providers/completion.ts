@@ -109,3 +109,39 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
         return items;
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+import { Lexer } from "../language/lexer/lexer"
+import { TokenType } from "../language/lexer/token";
+import { Parser } from "../language/parser/parser";
+
+const lexer = new Lexer();
+const parser = new Parser();
+
+const source = `
+vec3 color;
+float intensity = 0.5;
+
+void main()
+{
+    vec3 color;
+
+    if(true)
+    {
+        color.x = 1.0;
+    }
+}
+`;
+
+const tokens = lexer.tokenize(source);
+const node = parser.parse(tokens);
+
+console.log(node);
+
+// for (const token of tokens) {
+
+//     console.log(
+//         TokenType[token.type], `"${token.lexeme}"`
+//     );
+// }

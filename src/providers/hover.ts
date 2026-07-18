@@ -12,6 +12,23 @@ import { QUALIFIERS } from "../language/qualifiers";
 
 ///////////////////////////////////////////////////////////////////////////////
 
+interface VariableSymbol {
+    name: string;
+    type: string;
+    scopeStart: number;
+    scopeEnd: number;
+}
+
+// interface FunctionSymbol {
+//     name: string;
+//     returnType: string;
+//     parameters: ...
+// }
+
+const variables = new Map<string, VariableSymbol>();
+
+///////////////////////////////////////////////////////////////////////////////
+
 export class GLSLHoverProvider implements vscode.HoverProvider {
 
     provideHover(
@@ -24,6 +41,14 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         if (!range) return;
 
         const word = document.getText(range);
+        const md = new vscode.MarkdownString();
+        
+        const variable = variables.get(word);
+        if (variable) {
+
+            md.appendCodeblock(`${variable.type} ${variable.name}`, "glsl");
+            return new vscode.Hover(md);
+        }
 
         const func = SIGNATURE_FUNCTIONS.find(f => f.name === word);
 
@@ -35,8 +60,6 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
                 .join(", ") +
             ")";
 
-            const md = new vscode.MarkdownString();
-
             // md.appendMarkdown(`**${func.name}**\n\n`);
             md.appendCodeblock(signature, "glsl");
             md.appendMarkdown(`${func.description}\n`);
@@ -47,25 +70,60 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         }
         
         const constant = BUILTIN_CONSTANTS.find(c => c.name === word);
-        if (constant) return new vscode.Hover(constant.description);
+        if (constant) {
+
+            md.appendCodeblock(constant.name, "glsl");
+            md.appendMarkdown(`${constant.description}`);
+            return new vscode.Hover(md);
+        }
 
         const uniform = BUILTIN_UNIFORMS.find(u => u.name === word);
-        if (uniform) return new vscode.Hover(uniform.description);
+        if (uniform) {
 
-        const variable = BUILTIN_VARIABLES.find(v => v.name === word);
-        if (variable) return new vscode.Hover(variable.description);
+            md.appendCodeblock(uniform.name, "glsl");
+            md.appendMarkdown(`${uniform.description}`);
+            return new vscode.Hover(md);
+        }
 
-        const dataType = DATA_TYPES.find(t => t.name === word);
-        if (dataType) return new vscode.Hover(dataType.description);
+        const bVariable = BUILTIN_VARIABLES.find(v => v.name === word);
+        if (bVariable) {
 
-        const keyword = KEYWORDS.find(k => k.name === word);
-        if (keyword) return new vscode.Hover(keyword.description);
+            md.appendCodeblock(bVariable.name, "glsl");
+            md.appendMarkdown(`${bVariable.description}`);
+            return new vscode.Hover(md);
+        }
 
-        const preprocessor = PREPROCESSORS.find(p => p.name === word);
-        if (preprocessor) return new vscode.Hover(preprocessor.description);
+        // const dataType = DATA_TYPES.find(t => t.name === word);
+        // if (dataType) {
 
-        const qualifer = QUALIFIERS.find(q => q.name === word);
-        if (qualifer) return new vscode.Hover(qualifer.description);
+        //     md.appendCodeblock(dataType.name, "glsl");
+        //     md.appendMarkdown(`${dataType.description}`);
+        //     return new vscode.Hover(md);
+        // }
+
+        // const keyword = KEYWORDS.find(k => k.name === word);
+        // if (keyword) {
+
+        //     md.appendCodeblock(keyword.name, "glsl");
+        //     md.appendMarkdown(`${keyword.description}`);
+        //     return new vscode.Hover(md);
+        // }
+
+        // const preprocessor = PREPROCESSORS.find(p => p.name === word);
+        // if (preprocessor) {
+
+        //     md.appendCodeblock(preprocessor.name, "glsl");
+        //     md.appendMarkdown(`${preprocessor.description}`);
+        //     return new vscode.Hover(md);
+        // }
+
+        // const qualifer = QUALIFIERS.find(q => q.name === word);
+        // if (qualifer) {
+
+        //     md.appendCodeblock(qualifer.name, "glsl");
+        //     md.appendMarkdown(`${qualifer.description}`);
+        //     return new vscode.Hover(md);
+        // }
 
         return;
     }
