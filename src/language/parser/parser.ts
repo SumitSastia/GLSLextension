@@ -5,7 +5,8 @@ import {
     VariableDeclarationNode,
     FunctionDeclarationNode,
     ParameterNode,
-    StructDeclarationNode
+    StructDeclarationNode,
+    DeclarationNode
 } from "./ast";
 
 import { GLSL_QUALIFIERS } from "../keywords";
@@ -63,6 +64,11 @@ export class Parser {
             return this.advance();
 
         throw new Error(message);
+    }
+
+    private isTypeToken(token: Token): boolean
+    {
+        return token.type == TokenType.Keyword;
     }
 
     private match(...types: TokenType[]): boolean
@@ -234,7 +240,7 @@ export class Parser {
         };
     }
 
-    private parseVariableOrFunction(): ASTNode | null {
+    private parseVariableOrFunction(): DeclarationNode | null {
 
         if (!this.check(TokenType.Keyword))
         {
@@ -260,7 +266,7 @@ export class Parser {
         return this.parseVariable();
     }
 
-    private parseDeclaration(): ASTNode | null
+    private parseDeclaration(): DeclarationNode | null
     {
         switch (this.peek().lexeme)
         {
@@ -289,7 +295,7 @@ export class Parser {
         this.tokens = tokens;
         this.current = 0;
 
-        const declarations: ASTNode[] = [];
+        const declarations: DeclarationNode[] = [];
 
         while (!this.isAtEnd())
         {

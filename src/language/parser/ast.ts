@@ -43,9 +43,14 @@ export interface StructDeclarationNode extends ASTNode
     members: VariableDeclarationNode[];
 }
 
+export type DeclarationNode =
+| VariableDeclarationNode
+| FunctionDeclarationNode
+| StructDeclarationNode;
+
 export interface ProgramNode extends ASTNode
 {
     kind: "Program";
 
-    declarations: ASTNode[];
+    declarations: DeclarationNode[];
 }

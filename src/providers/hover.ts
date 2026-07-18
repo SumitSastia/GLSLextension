@@ -5,27 +5,16 @@ import { SIGNATURE_FUNCTIONS } from "../language/builtInFunctions";
 import { BUILTIN_UNIFORMS } from "../language/builtInUniforms";
 import { BUILTIN_VARIABLES } from "../language/builtInVariables";
 
-import { DATA_TYPES } from "../language/datatypes";
-import { KEYWORDS } from "../language/keywords";
-import { PREPROCESSORS } from "../language/preprocessor";
-import { QUALIFIERS } from "../language/qualifiers";
+import { Lexer } from "../language/lexer/lexer";
+import { Parser } from "../language/parser/parser";
+import { sign } from "crypto";
+
+// import { DATA_TYPES } from "../language/datatypes";
+// import { KEYWORDS } from "../language/keywords";
+// import { PREPROCESSORS } from "../language/preprocessor";
+// import { QUALIFIERS } from "../language/qualifiers";
 
 ///////////////////////////////////////////////////////////////////////////////
-
-interface VariableSymbol {
-    name: string;
-    type: string;
-    scopeStart: number;
-    scopeEnd: number;
-}
-
-// interface FunctionSymbol {
-//     name: string;
-//     returnType: string;
-//     parameters: ...
-// }
-
-const variables = new Map<string, VariableSymbol>();
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -37,18 +26,19 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         token: vscode.CancellationToken
     ): vscode.ProviderResult<vscode.Hover>
     {
+        const source = document.getText();
+
+        const lexer = new Lexer();
+        const tokens = lexer.tokenize(source);
+
+        const parser = new Parser();
+        const program = parser.parse(tokens);
+
         const range = document.getWordRangeAtPosition(position);
         if (!range) return;
 
         const word = document.getText(range);
         const md = new vscode.MarkdownString();
-        
-        const variable = variables.get(word);
-        if (variable) {
-
-            md.appendCodeblock(`${variable.type} ${variable.name}`, "glsl");
-            return new vscode.Hover(md);
-        }
 
         const func = SIGNATURE_FUNCTIONS.find(f => f.name === word);
 
@@ -124,6 +114,42 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         //     md.appendMarkdown(`${qualifer.description}`);
         //     return new vscode.Hover(md);
         // }
+
+        for (const declaration of program.declarations) {
+
+            switch (declaration.kind)
+            {
+                case "VariableDeclaration":
+                    if (declaration.name.lexeme === word)
+                    {
+                        md.appendCodeblock(`${declaration.type.lexeme} ` + declaration.name.lexeme, "glsl");
+                        return new vscode.Hover(md);
+                    }
+                    break;
+
+                case "FunctionDeclaration":
+                    if (declaration.name === word)
+                    {
+                        const signature = `${declaration.returnType} ${declaration.name}(` +
+                            declaration.parameters
+                            .map(p => `${p.type.lexeme} ${p.name.lexeme}`)
+                            .join(", ") +
+                        ")";
+
+                        md.appendCodeblock(signature, "glsl");
+                        return new vscode.Hover(md);
+                    }
+                    break;
+
+                case "StructDeclaration":
+                    if (declaration.name.lexeme === word)
+                    {
+                        md.appendCodeblock(`struct ` + declaration.name.lexeme, "glsl");
+                        return new vscode.Hover(md);
+                    }
+                    break;
+            }
+        }
 
         return;
     }
