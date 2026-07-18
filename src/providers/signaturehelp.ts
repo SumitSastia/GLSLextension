@@ -3,26 +3,22 @@ import { EXPANDED_SIGNATURES } from "../language/signatures/signatureExpander";
 
 function getActiveParameter(text: string): number {
 
-    let depth = 0;
+    let depth  = 0;
     let commas = 0;
 
     for (let i = text.length - 1; i >= 0; --i) {
 
         const c = text[i];
-
-        if (c === ')')
-            depth++;
+        if (c === ')') depth++;
 
         else if (c === '(') {
-
-            if (depth === 0)
-                break;
-
+            if (depth === 0) break;
             depth--;
         }
 
-        else if (c === ',' && depth === 0)
+        else if (c === ',' && depth === 0) {
             commas++;
+        }
     }
 
     return commas;
@@ -42,8 +38,6 @@ export class GLSLSignatureHelpProvider implements vscode.SignatureHelpProvider {
 
         if (!match) return null;
         const functionName = match[1];
-
-        const commas = (beforeCursor.match(/,/g) || []).length;
         
         const help = new vscode.SignatureHelp();
 

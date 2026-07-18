@@ -74,10 +74,6 @@ function expandSignatures() {
 
     for (const signature of SIGNATURE_FUNCTIONS) {
 
-        const parameterTypes = signature.parameters.map(param =>
-            expandType(param.type)
-        );
-
         const abstractTypes = new Set<string>();
         abstractTypes.add(signature.returnType);
 

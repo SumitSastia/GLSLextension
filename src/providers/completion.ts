@@ -1,8 +1,6 @@
 import * as vscode from "vscode";
 
 import { BUILTIN_CONSTANTS } from "../language/builtInConstants";
-
-// import { SIGNATURE_FUNCTIONS } from "../language/builtInFunctions";
 import { GLSL_FUNCTION_NAMES } from "../language/builtInFunctions";
 import { BUILTIN_UNIFORMS } from "../language/builtInUniforms";
 import { BUILTIN_VARIABLES } from "../language/builtInVariables";

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { GLSLCompletionProvider } from './providers/completion';
 import { GLSLSignatureHelpProvider } from './providers/signaturehelp';
+import { GLSLHoverProvider } from './providers/hover';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -17,6 +18,11 @@ export function activate(context: vscode.ExtensionContext) {
 		new GLSLSignatureHelpProvider(),
 		"(",
 		","
+	);
+
+	const hoverProvider = vscode.languages.registerHoverProvider(
+		{ language: "glsl"},
+		new GLSLHoverProvider()
 	);
 
 	const readShader = vscode.commands.registerCommand('glslextension.readShader', () => {
@@ -44,6 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(readShader);
 	context.subscriptions.push(completionProvider);
 	context.subscriptions.push(signatureHelpProvider);
+	context.subscriptions.push(hoverProvider);
 }
 
 export function deactivate() {}
