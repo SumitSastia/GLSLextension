@@ -14,6 +14,7 @@ export interface VariableDeclarationNode extends ASTNode
 {
     kind: "VariableDeclaration";
 
+    qualifiers: Token[];
     type: Token;
     name: Token;
     initializer?: ExpressionNode;
@@ -30,8 +31,16 @@ export interface FunctionDeclarationNode extends ASTNode
 
 export interface ParameterNode
 {
-    type: string;
-    name: string;
+    qualifiers: Token[],
+    type: Token;
+    name: Token;
+}
+
+export interface StructDeclarationNode extends ASTNode
+{
+    kind: "StructDeclaration";
+    name: Token;
+    members: VariableDeclarationNode[];
 }
 
 export interface ProgramNode extends ASTNode

@@ -1,5 +1,14 @@
 import { Token, TokenType } from "../lexer/token";
-import { ASTNode, ProgramNode, VariableDeclarationNode, FunctionDeclarationNode, ExpressionNode } from "./ast";
+import {
+    ASTNode,
+    ProgramNode,
+    VariableDeclarationNode,
+    FunctionDeclarationNode,
+    ParameterNode,
+    StructDeclarationNode
+} from "./ast";
+
+import { GLSL_QUALIFIERS } from "../keywords";
 
 export class Parser {
 
@@ -25,6 +34,11 @@ export class Parser {
     private isAtEnd(): boolean
     {
         return this.peek().type == TokenType.EOF;
+    }
+
+    private isQualifier(token: Token): boolean
+    {
+        return GLSL_QUALIFIERS.has(token.lexeme);
     }
 
     private advance(): Token
@@ -65,8 +79,53 @@ export class Parser {
         return false;
     }
 
+    private parseParameter(): ParameterNode
+    {
+        const qualifiers = this.parseQualifiers();
+
+        const type = this.consume(
+            TokenType.Keyword,
+            "Expected parameter type."
+        );
+
+        const name = this.consume(
+            TokenType.Identifier,
+            "Expected parameter name."
+        );
+
+        return {
+            qualifiers,
+            type,
+            name
+        };
+    }
+
+    private parseQualifiers(): Token[] {
+
+        const qualifiers: Token[] = [];
+
+        while (true)
+        {
+            if (this.peek().lexeme == "layout")
+            {
+                continue;
+            }
+
+            if (this.isQualifier(this.peek()))
+            {
+                qualifiers.push(this.advance());
+                continue;
+            }
+
+            break;
+        }
+
+        return qualifiers;
+    }
+
     private parseVariable(): VariableDeclarationNode
     {
+        const qualifiers = this.parseQualifiers();
         const type = this.advance();
         const name = this.advance();
 
@@ -82,6 +141,7 @@ export class Parser {
 
         return {
             kind: "VariableDeclaration",
+            qualifiers,
             type,
             name
         };
@@ -94,12 +154,15 @@ export class Parser {
 
         this.consume(TokenType.LeftParen, "Expected '(' after function name.");
 
-        while (
-            !this.check(TokenType.RightParen) &&
-            !this.isAtEnd()
-        )
+        const parameters: ParameterNode[] = [];
+
+        if (!this.check(TokenType.RightParen))
         {
-            this.advance();
+            do
+            {
+                parameters.push(this.parseParameter());
+            }
+            while (this.match(TokenType.Comma));
         }
 
         this.consume(TokenType.RightParen, "Expected ')'.");
@@ -122,13 +185,57 @@ export class Parser {
             kind: "FunctionDeclaration",
             returnType,
             name,
-            parameters: [],
+            parameters,
             body: []
         };
     }
 
-    private parseDeclaration(): ASTNode | null
-    {
+    private parseStruct(): StructDeclarationNode {
+
+        this.consume(
+            TokenType.Keyword,
+            "Expected 'struct'."
+        );
+
+        const name = this.consume(
+            TokenType.Identifier,
+            "Expected struct name."
+        );
+
+        this.consume(
+            TokenType.LeftBrace,
+            "Expected '{'."
+        );
+
+        const members: VariableDeclarationNode[] = [];
+
+        while (
+            !this.check(TokenType.RightBrace) &&
+            !this.isAtEnd()
+        )
+        {
+            members.push(this.parseVariable());
+        }
+
+        this.consume(
+            TokenType.RightBrace,
+            "Expected '}'."
+        );
+
+        this.consume(
+            TokenType.Semicolon,
+            "Expected ';'."
+        );
+
+        return {
+            kind: "StructDeclaration",
+            name,
+            members
+        };
+    }
+
+    private parseVariableOrFunction(): ASTNode | null {
+
         if (!this.check(TokenType.Keyword))
         {
             this.advance();
@@ -151,6 +258,30 @@ export class Parser {
             return this.parseFunction();
 
         return this.parseVariable();
+    }
+
+    private parseDeclaration(): ASTNode | null
+    {
+        switch (this.peek().lexeme)
+        {
+            case "struct":
+                return this.parseStruct();
+
+            case "precision":
+                // return this.parsePrecision();
+
+            case "layout":
+                // return this.parseLayoutDeclaration();
+
+            case "buffer":
+                // return this.parseBufferBlock();
+
+            case "subroutine":
+                // return this.parseSubroutine();
+
+            default:
+                return this.parseVariableOrFunction();
+        }
     }
 
     parse(tokens: Token[]): ProgramNode

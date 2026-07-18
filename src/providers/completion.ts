@@ -123,6 +123,16 @@ const source = `
 vec3 color;
 float intensity = 0.5;
 
+struct Student {
+
+    int id;
+    float name;
+    vec3 direction;
+};
+
+int randomFloat(float num) {
+}
+
 void main()
 {
     vec3 color;

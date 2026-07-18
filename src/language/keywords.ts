@@ -99,3 +99,17 @@ export const GLSL_KEYWORDS = new Set([
     "sampler2D",
     "samplerCube"
 ]);
+
+export const GLSL_QUALIFIERS = new Set([
+    "const",
+    "uniform",
+    "in",
+    "out",
+    "inout",
+    "flat",
+    "smooth",
+    "centroid",
+    "patch",
+    "sample",
+    "precise"
+]);
