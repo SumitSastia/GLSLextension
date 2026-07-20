@@ -10,6 +10,10 @@ export interface ExpressionNode extends ASTNode
 
 }
 
+export interface UnknownStatementNode extends ASTNode {
+    kind: "Unknown";
+}
+
 export interface VariableDeclarationNode extends ASTNode
 {
     kind: "VariableDeclaration";
@@ -26,7 +30,7 @@ export interface FunctionDeclarationNode extends ASTNode
     returnType: string;
     name: string;
     parameters: ParameterNode[];
-    body: ASTNode[];
+    body: FunctionBodyNode;
 }
 
 export interface ParameterNode
@@ -34,6 +38,23 @@ export interface ParameterNode
     qualifiers: Token[],
     type: Token;
     name: Token;
+}
+
+export type StatementNode =
+    | BlockNode
+    | VariableDeclarationNode
+    | UnknownStatementNode;
+
+export interface BlockNode extends ASTNode
+{
+    kind: "BlockNode";
+    statements: StatementNode[];
+}
+
+export interface FunctionBodyNode extends ASTNode
+{
+    kind: "FunctionBody";
+    block: BlockNode;
 }
 
 export interface StructDeclarationNode extends ASTNode
@@ -44,9 +65,9 @@ export interface StructDeclarationNode extends ASTNode
 }
 
 export type DeclarationNode =
-| VariableDeclarationNode
-| FunctionDeclarationNode
-| StructDeclarationNode;
+    | VariableDeclarationNode
+    | FunctionDeclarationNode
+    | StructDeclarationNode;
 
 export interface ProgramNode extends ASTNode
 {

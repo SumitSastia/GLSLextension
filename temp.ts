@@ -9,6 +9,16 @@ import { Lexer } from "../language/lexer/lexer";
 import { Parser } from "../language/parser/parser";
 import { sign } from "crypto";
 
+import {
+    ASTNode,
+    DeclarationNode,
+    FunctionBodyNode,
+    UnknownStatementNode,
+    StatementNode,
+    BlockNode
+
+} from "../language/parser/ast";
+
 // import { DATA_TYPES } from "../language/datatypes";
 // import { KEYWORDS } from "../language/keywords";
 // import { PREPROCESSORS } from "../language/preprocessor";
@@ -16,30 +26,93 @@ import { sign } from "crypto";
 
 ///////////////////////////////////////////////////////////////////////////////
 
-import { BlockNode } from "../language/parser/ast";
-
 ///////////////////////////////////////////////////////////////////////////////
 
 export class GLSLHoverProvider implements vscode.HoverProvider {
 
+    // private findDeclaration(
+    //     node: ASTNode,
+    //     name: string
+    // ): DeclarationNode | null
+    // {
+    //     switch (node.kind)
+    //     {
+    //         case "Program":
+    //         {
+    //             for (const declaration of node.declarations)
+    //             {
+    //                 const result = this.findDeclaration(declaration, name);
+    //                 if (result) return result;
+    //             }
+    //             break;
+    //         }
+
+    //         case "FunctionDeclaration":
+    //         {
+    //             const result = this.findDeclaration(node.body, name);
+    //             if (result) return result;
+    //             break;
+    //         }
+
+    //         case "Block":
+    //         {
+    //             for (const statement of node.statements)
+    //             {
+    //                 const result = this.findDeclaration(statement, name);
+    //                 if (result) return result;
+    //             }
+    //             break;
+    //         }
+
+    //         case "VariableDeclaration":
+    //         {
+    //             if (node.name.lexeme === name)
+    //                 return node;
+    //             break;
+    //         }
+
+    //         case "StructDeclaration":
+    //         {
+    //             if (node.name.lexeme === name)
+    //                 return node;
+    //             break;
+    //         }
+
+    //         case "FunctionDeclaration":
+    //         {
+    //             if (node.name.lexeme === name)
+    //                 return node;
+
+    //             const result = this.findDeclaration(node.body, name);
+    //             if (result) return result;
+    //             break;
+    //         }
+
+    //         case "UnknownStatement":
+    //             break;
+    //     }
+
+    //     return null;
+    // }
+
     private checkBlock(block: BlockNode, word: string): vscode.MarkdownString | null {
-
-        const md = new vscode.MarkdownString();
-
+        
         for (const statement of block.statements) {
-            if (statement.kind === "VariableDeclaration") {
-
+            
+            if (statement.kind == "VariableDeclaration") {
                 if (statement.name.lexeme === word) {
+                    
+                    const md = new vscode.MarkdownString();
                     md.appendCodeblock(`${statement.type.lexeme} ` + statement.name.lexeme, "glsl");
                     return md;
                 }
             }
 
-            if (statement.kind === "BlockNode") {
-                const md2 = this.checkBlock(statement, word);
-                if (md2) return md2;
+            if (statement.kind == "BlockNode") {
+                return this.checkBlock(statement, word);
             }
         }
+
         return null;
     }
 
@@ -49,7 +122,6 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         token: vscode.CancellationToken
     ): vscode.ProviderResult<vscode.Hover>
     {
-        const md = new vscode.MarkdownString();
         const source = document.getText();
 
         const lexer = new Lexer();
@@ -62,6 +134,7 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         if (!range) return;
 
         const word = document.getText(range);
+        const md = new vscode.MarkdownString();
 
         const func = SIGNATURE_FUNCTIONS.find(f => f.name === word);
 
@@ -150,22 +223,22 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
                     }
                     break;
 
-                case "FunctionDeclaration":
-                    if (declaration.name === word)
-                    {
-                        const signature = `${declaration.returnType} ${declaration.name}(` +
-                            declaration.parameters
-                            .map(p => `${p.type.lexeme} ${p.name.lexeme}`)
-                            .join(", ") +
-                        ")";
+                // case "FunctionDeclaration":
+                //     if (declaration.name === word)
+                //     {
+                //         const signature = `${declaration.returnType} ${declaration.name}(` +
+                //             declaration.parameters
+                //             .map(p => `${p.type.lexeme} ${p.name.lexeme}`)
+                //             .join(", ") +
+                //         ")";
 
-                        md.appendCodeblock(signature, "glsl");
-                        return new vscode.Hover(md);
-                    }
+                //         md.appendCodeblock(signature, "glsl");
+                //         return new vscode.Hover(md);
+                //     }
 
-                    const md2 = this.checkBlock(declaration.body.block, word);
-                    if (md2) return new vscode.Hover(md2);
-                    break;
+                //     // const md2 = this.checkBlock(declaration.body.block, word);
+                //     // if (md2) return new vscode.Hover(md2);
+                //     break;
 
                 case "StructDeclaration":
                     if (declaration.name.lexeme === word)
@@ -177,6 +250,7 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
             }
         }
 
-        return null;
+        md.appendText("Unknown Type.");
+        return new vscode.Hover(md);
     }
 }

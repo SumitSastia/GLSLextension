@@ -10,6 +10,9 @@ import { KEYWORDS } from "../language/keywords";
 import { PREPROCESSORS } from "../language/preprocessor";
 import { QUALIFIERS } from "../language/qualifiers";
 
+import { Lexer } from "../language/lexer/lexer";
+import { Parser } from "../language/parser/parser";
+
 ///////////////////////////////////////////////////////////////////////////////
 
 export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
@@ -106,48 +109,89 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
             items.push(item);
         }
 
+        /////////////////////////////////////////////////////////////////////////////////
+
+        const source = document.getText();
+        
+        const lexer = new Lexer();
+        const tokens = lexer.tokenize(source);
+
+        const parser = new Parser();
+        const program = parser.parse(tokens);
+
+        for (const declaration of program.declarations) {
+        
+            switch (declaration.kind)
+            {
+                case "VariableDeclaration":
+                    if (declaration.name.lexeme.startsWith(currentWord))
+                    {
+                        const item = new vscode.CompletionItem(declaration.name.lexeme, vscode.CompletionItemKind.Variable);
+                        items.push(item);
+                    }
+                    break;
+
+                case "FunctionDeclaration":
+                    if (declaration.name.startsWith(currentWord))
+                    {
+                        const item = new vscode.CompletionItem(declaration.name, vscode.CompletionItemKind.Function);
+                        items.push(item);
+                    }
+                    break;
+                
+                case "StructDeclaration":
+                    if (declaration.name.lexeme.startsWith(currentWord))
+                    {
+                        const item = new vscode.CompletionItem(declaration.name.lexeme, vscode.CompletionItemKind.Struct);
+                        items.push(item);
+                    }
+                    break;
+            }
+        }
+
+
         return items;
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-import { Lexer } from "../language/lexer/lexer"
-import { TokenType } from "../language/lexer/token";
-import { Parser } from "../language/parser/parser";
+// import { Lexer } from "../language/lexer/lexer"
+// import { TokenType } from "../language/lexer/token";
+// import { Parser } from "../language/parser/parser";
 
-const lexer = new Lexer();
-const parser = new Parser();
+// const lexer = new Lexer();
+// const parser = new Parser();
 
-const source = `
-vec3 color;
-float intensity = 0.5;
+// const source = `
+// vec3 color;
+// float intensity = 0.5;
 
-struct Student {
+// struct Student {
 
-    int id;
-    float name;
-    vec3 direction;
-};
+//     int id;
+//     float name;
+//     vec3 direction;
+// };
 
-int randomFloat(float num) {
-}
+// int randomFloat(float num) {
+// }
 
-void main()
-{
-    vec3 color;
+// void main()
+// {
+//     vec3 color;
 
-    if(true)
-    {
-        color.x = 1.0;
-    }
-}
-`;
+//     if(true)
+//     {
+//         color.x = 1.0;
+//     }
+// }
+// `;
 
-const tokens = lexer.tokenize(source);
-const node = parser.parse(tokens);
+// const tokens = lexer.tokenize(source);
+// const node = parser.parse(tokens);
 
-console.log(node);
+// console.log(node);
 
 // for (const token of tokens) {
 

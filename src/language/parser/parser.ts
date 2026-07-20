@@ -6,10 +6,15 @@ import {
     FunctionDeclarationNode,
     ParameterNode,
     StructDeclarationNode,
-    DeclarationNode
+    DeclarationNode,
+    FunctionBodyNode,
+    UnknownStatementNode,
+    StatementNode,
+    BlockNode
 } from "./ast";
 
 import { GLSL_QUALIFIERS } from "../keywords";
+import { Func } from "mocha";
 
 export class Parser {
 
@@ -153,6 +158,130 @@ export class Parser {
         };
     }
 
+    private isVariableDeclaration(): boolean {
+
+        let offset = 0;
+
+         // Skip qualifiers
+        while (true)
+        {
+            const token = this.peekOffset(offset);
+
+            if (!token)
+                return false;
+
+            if (!this.isQualifier(token))
+                break;
+
+            offset++;
+        }
+
+        // Type
+        const type = this.peekOffset(offset);
+
+        if (!type)
+            return false;
+
+        if (
+            type.type != TokenType.Keyword &&
+            type.type != TokenType.Identifier
+        )
+        {
+            return false;
+        }
+
+        offset++;
+
+        // Variable name
+        const name = this.peekOffset(offset);
+
+        if (!name)
+            return false;
+
+        if (name.type != TokenType.Identifier)
+            return false;
+
+        offset++;
+
+        // What follows the variable name?
+        const next = this.peekOffset(offset);
+
+        if (!next)
+            return false;
+
+        return (
+            next.type == TokenType.Semicolon ||
+            next.type == TokenType.Equal ||
+            next.type == TokenType.LeftBracket
+        );
+    }
+
+    private skipStatement(): UnknownStatementNode {
+
+        while (
+            !this.check(TokenType.Semicolon) &&
+            !this.check(TokenType.RightBrace)
+        )
+        {
+            this.advance();
+        }
+
+        this.match(TokenType.Semicolon);
+
+        return {
+            kind: "Unknown"
+        }
+    }
+
+    private parseBlock(): BlockNode {
+
+        this.consume(
+            TokenType.LeftBrace,
+            "Expected '{'."
+        );
+
+        const statements: StatementNode[] = [];
+
+        while (
+            !this.check(TokenType.RightBrace) &&
+            !this.isAtEnd()
+        )
+        {
+            if (this.check(TokenType.LeftBrace))
+            {
+                statements.push(this.parseBlock());
+            }
+            else if (this.isVariableDeclaration())
+            {
+                statements.push(this.parseVariable());
+            }
+            else
+            {
+                statements.push(this.skipStatement());
+            }
+        }
+
+        this.consume(
+            TokenType.RightBrace,
+            "Expected '}'."
+        );
+
+        return {
+            kind: "BlockNode",
+            statements
+        };
+    }
+
+    private parseFunctionBody(): FunctionBodyNode {
+
+        const block: BlockNode = this.parseBlock();
+
+        return {
+            kind: "FunctionBody",
+            block
+        };
+    }
+
     private parseFunction(): FunctionDeclarationNode {
 
         const returnType = this.advance().lexeme;
@@ -172,27 +301,15 @@ export class Parser {
         }
 
         this.consume(TokenType.RightParen, "Expected ')'.");
-        this.consume(TokenType.LeftBrace, "Expected '{'.");
-
-        let depth = 1;
-
-        while (depth > 0 && !this.isAtEnd())
-        {
-            const token = this.advance();
-
-            if (token.type == TokenType.LeftBrace)
-                depth++;
-
-            if (token.type == TokenType.RightBrace)
-                depth--;
-        }
+        
+        const body = this.parseFunctionBody();
 
         return {
             kind: "FunctionDeclaration",
             returnType,
             name,
             parameters,
-            body: []
+            body
         };
     }
 
@@ -248,9 +365,11 @@ export class Parser {
             return null;
         }
 
+        // No next Token (Should be Datatype)
         if (!this.peekOffset(1))
             return null;
 
+        // No next Token after next Token (Should be Indentifier)
         if (!this.peekOffset(2))
             return null;
 
@@ -260,9 +379,11 @@ export class Parser {
             return null;
         }
 
+        // Found Function Header
         if (this.peekOffset(2).type == TokenType.LeftParen)
             return this.parseFunction();
 
+        // Return Variable Declaration
         return this.parseVariable();
     }
 
