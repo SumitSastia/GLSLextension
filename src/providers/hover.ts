@@ -18,6 +18,9 @@ import { sign } from "crypto";
 
 import { BlockNode } from "../language/parser/ast";
 
+import { test } from "../language/analyzer/test";
+test();
+
 ///////////////////////////////////////////////////////////////////////////////
 
 export class GLSLHoverProvider implements vscode.HoverProvider {
@@ -172,6 +175,14 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
                     {
                         md.appendCodeblock(`struct ` + declaration.name.lexeme, "glsl");
                         return new vscode.Hover(md);
+                    }
+
+                    for (const member of declaration.members) {
+                        if (member.name.lexeme === word)
+                        {
+                            md.appendCodeblock(`${member.type.lexeme} ${declaration.name.lexeme}::` + member.name.lexeme, "glsl");
+                            return new vscode.Hover(md);
+                        }
                     }
                     break;
             }
