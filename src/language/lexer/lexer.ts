@@ -182,19 +182,22 @@ export class Lexer {
 
     private scanNumber(): Token
     {
+        let isFloat = false;
+
         while (this.isDigit(this.peek()))
             this.advance();
 
         // Fractional part
         if (this.peek() == '.' && this.isDigit(this.peekNext()))
         {
+            isFloat = true;
             this.advance(); // consume '.'
 
             while (this.isDigit(this.peek()))
                 this.advance();
         }
 
-        return this.makeToken(TokenType.Number);
+        return this.makeToken(isFloat? TokenType.FloatLiteral : TokenType.IntegerLiteral);
     }
 
     private peek(): string {

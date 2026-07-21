@@ -70,6 +70,9 @@ export enum TokenType {
     // End
     EOF,
 
+    IntegerLiteral,
+    FloatLiteral,
+    
     Unknown
 }
 

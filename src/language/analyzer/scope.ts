@@ -2,6 +2,7 @@ import { Symbol } from "./symbol";
 
 export class Scope
 {
+    children: Scope[] = [];
     readonly symbols = new Map<string, Symbol>();
 
     constructor(

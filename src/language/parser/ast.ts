@@ -5,10 +5,33 @@ export interface ASTNode
     kind: string;
 }
 
-export interface ExpressionNode extends ASTNode
+export interface LiteralNode extends ASTNode
 {
-
+    kind: "Literal";
+    value: Token;
 }
+
+export interface IdentifierNode extends ASTNode
+{
+    kind: "Identifier";
+    name: Token;
+    resolvedSymbol?: Symbol;
+}
+
+export interface CallExpressionNode extends ASTNode
+{
+    kind: "Expression";
+}
+
+export type ExpressionNode =
+    | LiteralNode
+    | IdentifierNode
+    | CallExpressionNode;
+
+// export interface ExpressionNode extends ASTNode
+// {
+
+// }
 
 export interface UnknownStatementNode extends ASTNode {
     kind: "Unknown";

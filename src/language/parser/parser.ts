@@ -10,7 +10,10 @@ import {
     FunctionBodyNode,
     UnknownStatementNode,
     StatementNode,
-    BlockNode
+    BlockNode,
+    ExpressionNode,
+    IdentifierNode,
+    LiteralNode
 } from "./ast";
 
 import { GLSL_QUALIFIERS } from "../keywords";
@@ -134,27 +137,72 @@ export class Parser {
         return qualifiers;
     }
 
+    private parseIdentifier(): IdentifierNode
+    {
+        return {
+            kind: "Identifier",
+            name: this.advance()
+        };
+    }
+
+    private parseLiteral(): LiteralNode
+    {
+        return {
+            kind: "Literal",
+            value: this.advance()
+        };
+    }
+
+    private parseExpression(): ExpressionNode
+    {
+        if (this.check(TokenType.Identifier))
+        {
+            return this.parseIdentifier();
+        }
+
+        if (this.check(TokenType.IntegerLiteral) ||
+            this.check(TokenType.FloatLiteral))
+        {
+            return this.parseLiteral();
+        }
+
+        throw this.error(this.peek(), "Expected expression.");
+    }
+
     private parseVariable(): VariableDeclarationNode
     {
         const qualifiers = this.parseQualifiers();
         const type = this.advance();
         const name = this.advance();
 
-        while (
-            !this.check(TokenType.Semicolon) &&
-            !this.isAtEnd()
-        )
+        let initializer: ExpressionNode | undefined;
+
+        if (this.match(TokenType.Equal))
         {
-            this.advance();
+            initializer = this.parseExpression();
         }
 
-        this.match(TokenType.Semicolon);
+        this.consume(
+            TokenType.Semicolon,
+            "Expected ';' after variable declaration."
+        );
+
+        // while (
+        //     !this.check(TokenType.Semicolon) &&
+        //     !this.isAtEnd()
+        // )
+        // {
+        //     this.advance();
+        // }
+
+        // this.match(TokenType.Semicolon);
 
         return {
             kind: "VariableDeclaration",
             qualifiers,
             type,
-            name
+            name,
+            initializer
         };
     }
 
@@ -430,5 +478,12 @@ export class Parser {
             kind: "Program",
             declarations
         };
+    }
+
+    private error(token: Token, message: string): Error
+    {
+        return new Error(
+            `[Line ${token.line}] ${message}`
+        );
     }
 }

@@ -11,14 +11,32 @@ vec3 lightDir;
 
 float intensity;
 
-void main() {}
+struct Light {
+
+    vec3 direction;
+    float strength;
+};
+
+void main() {
+
+    float num = 100.0;
+    float dist = num;
+}
 `;
 
 const lexer = new Lexer();
 const tokens = lexer.tokenize(source);
 
+console.log("Lexer Completed!");
+
 const parser = new Parser();
 const programNode = parser.parse(tokens);
 
+console.log("Parser Completed!");
+
+// console.log(programNode);
+
 const analyzer = new Analyzer();
 analyzer.analyze(programNode);
+
+console.log("Analyzer Completed!");
