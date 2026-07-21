@@ -17,9 +17,7 @@ import { sign } from "crypto";
 ///////////////////////////////////////////////////////////////////////////////
 
 import { BlockNode } from "../language/parser/ast";
-
-import { test } from "../language/analyzer/test";
-test();
+import { Token } from "../language/lexer/token";
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -46,6 +44,20 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         return null;
     }
 
+    private outOfScope(node: Token, position: vscode.Position): boolean {
+
+        if (node.line > position.line)
+            return true;
+
+        if (
+            node.line === position.line &&
+            node.column >= position.character
+        )
+            return true;
+
+        return false;
+    }
+
     provideHover(
         document: vscode.TextDocument, 
         position: vscode.Position, 
@@ -55,11 +67,17 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         const md = new vscode.MarkdownString();
         const source = document.getText();
 
+        console.log("Checking!!");
+
         const lexer = new Lexer();
         const tokens = lexer.tokenize(source);
 
+        console.log("Lexer Completed!");
+
         const parser = new Parser();
         const program = parser.parse(tokens);
+
+        console.log("Parser Completed!");
 
         const range = document.getWordRangeAtPosition(position);
         if (!range) return;
@@ -145,18 +163,24 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
 
             switch (declaration.kind)
             {
+                // Global Variables
                 case "VariableDeclaration":
+
                     if (declaration.name.lexeme === word)
                     {
+                        if (this.outOfScope(declaration.name, position)) continue;
                         md.appendCodeblock(`${declaration.type.lexeme} ` + declaration.name.lexeme, "glsl");
                         return new vscode.Hover(md);
                     }
                     break;
 
+                // Block Scope
                 case "FunctionDeclaration":
-                    if (declaration.name === word)
+                    
+                    if (declaration.name.lexeme === word)
                     {
-                        const signature = `${declaration.returnType} ${declaration.name}(` +
+                        if (this.outOfScope(declaration.name, position)) continue;
+                        const signature = `${declaration.returnType} ${declaration.name.lexeme}(` +
                             declaration.parameters
                             .map(p => `${p.type.lexeme} ${p.name.lexeme}`)
                             .join(", ") +
@@ -171,8 +195,10 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
                     break;
 
                 case "StructDeclaration":
+                    
                     if (declaration.name.lexeme === word)
                     {
+                        if (this.outOfScope(declaration.name, position)) continue;
                         md.appendCodeblock(`struct ` + declaration.name.lexeme, "glsl");
                         return new vscode.Hover(md);
                     }

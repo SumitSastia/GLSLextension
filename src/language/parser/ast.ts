@@ -51,7 +51,7 @@ export interface FunctionDeclarationNode extends ASTNode
 {
     kind: "FunctionDeclaration";
     returnType: string;
-    name: string;
+    name: Token;
     parameters: ParameterNode[];
     body: FunctionBodyNode;
 }

@@ -13,6 +13,8 @@ export class Lexer {
     private line   = 0;
     private column = 0;
 
+    private startColumn = 0;
+
     private scanToken(): Token | null
     {
         const c = this.advance();
@@ -144,7 +146,7 @@ export class Lexer {
             type,
             lexeme: this.source.substring(this.start, this.current),
             line: this.line,
-            column: this.column
+            column: this.startColumn
         };
     }
 
@@ -188,7 +190,7 @@ export class Lexer {
             this.advance();
 
         // Fractional part
-        if (this.peek() == '.' && this.isDigit(this.peekNext()))
+        if (this.peek() == '.')
         {
             isFloat = true;
             this.advance(); // consume '.'
@@ -253,6 +255,7 @@ export class Lexer {
         while (!this.isAtEnd())
         {
             this.start = this.current;
+            this.startColumn = this.column;
 
             const token = this.scanToken();
 

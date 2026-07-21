@@ -173,29 +173,29 @@ export class Parser {
     {
         const qualifiers = this.parseQualifiers();
         const type = this.advance();
-        const name = this.advance();
+        const name = this.consume(TokenType.Identifier, "Expected a variable name.");
 
         let initializer: ExpressionNode | undefined;
 
-        if (this.match(TokenType.Equal))
-        {
-            initializer = this.parseExpression();
-        }
-
-        this.consume(
-            TokenType.Semicolon,
-            "Expected ';' after variable declaration."
-        );
-
-        // while (
-        //     !this.check(TokenType.Semicolon) &&
-        //     !this.isAtEnd()
-        // )
+        // if (this.match(TokenType.Equal))
         // {
-        //     this.advance();
+        //     initializer = this.parseExpression();
         // }
 
-        // this.match(TokenType.Semicolon);
+        // this.consume(
+        //     TokenType.Semicolon,
+        //     "Expected ';' after variable declaration."
+        // );
+
+        while (
+            !this.check(TokenType.Semicolon) &&
+            !this.isAtEnd()
+        )
+        {
+            this.advance();
+        }
+
+        this.match(TokenType.Semicolon);
 
         return {
             kind: "VariableDeclaration",
@@ -333,7 +333,7 @@ export class Parser {
     private parseFunction(): FunctionDeclarationNode {
 
         const returnType = this.advance().lexeme;
-        const name = this.consume(TokenType.Identifier, "Expected a function name.").lexeme;
+        const name = this.consume(TokenType.Identifier, "Expected a function name.");
 
         this.consume(TokenType.LeftParen, "Expected '(' after function name.");
 

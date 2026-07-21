@@ -73,7 +73,8 @@ export enum TokenType {
     IntegerLiteral,
     FloatLiteral,
     
-    Unknown
+    Unknown,
+    Int
 }
 
 export interface Token {
