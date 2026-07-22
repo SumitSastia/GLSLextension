@@ -67,17 +67,17 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         const md = new vscode.MarkdownString();
         const source = document.getText();
 
-        console.log("Checking!!");
+        // console.log("Checking!!");
 
         const lexer = new Lexer();
         const tokens = lexer.tokenize(source);
 
-        console.log("Lexer Completed!");
+        // console.log("Lexer Completed!");
 
         const parser = new Parser();
         const program = parser.parse(tokens);
 
-        console.log("Parser Completed!");
+        // console.log("Parser Completed!");
 
         const range = document.getWordRangeAtPosition(position);
         if (!range) return;
@@ -94,12 +94,8 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
                 .join(", ") +
             ")";
 
-            // md.appendMarkdown(`**${func.name}**\n\n`);
             md.appendCodeblock(signature, "glsl");
             md.appendMarkdown(`${func.description}\n`);
-    
-            // md.appendMarkdown(`**Category:** ${func.category}\n\n`);
-            // md.appendMarkdown(`**Since:** GLSL ${func.version}`);
             return new vscode.Hover(md);
         }
         
@@ -203,13 +199,14 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
                         return new vscode.Hover(md);
                     }
 
-                    for (const member of declaration.members) {
-                        if (member.name.lexeme === word)
-                        {
-                            md.appendCodeblock(`${member.type.lexeme} ${declaration.name.lexeme}::` + member.name.lexeme, "glsl");
-                            return new vscode.Hover(md);
-                        }
-                    }
+                    // for (const member of declaration.members) {
+                    //     if (member.name.lexeme === word)
+                    //     {
+                    //         if (this.outOfScope(member.name, position)) continue;
+                    //         md.appendCodeblock(`${member.type.lexeme} ${declaration.name.lexeme}::` + member.name.lexeme, "glsl");
+                    //         return new vscode.Hover(md);
+                    //     }
+                    // }
                     break;
             }
         }

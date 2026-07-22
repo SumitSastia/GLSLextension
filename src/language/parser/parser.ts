@@ -122,6 +122,7 @@ export class Parser {
         {
             if (this.peek().lexeme == "layout")
             {
+                this.advance();
                 continue;
             }
 
@@ -153,7 +154,7 @@ export class Parser {
         };
     }
 
-    private parseExpression(): ExpressionNode
+    private parsePrimary(): ExpressionNode
     {
         if (this.check(TokenType.Identifier))
         {
@@ -169,6 +170,37 @@ export class Parser {
         throw this.error(this.peek(), "Expected expression.");
     }
 
+    private parsePostfix(): ExpressionNode
+    {
+        let expr = this.parsePrimary();
+
+        while (true)
+        {
+            if (this.match(TokenType.LeftParen))
+            {
+                // Function call
+            }
+            else if (this.match(TokenType.Dot))
+            {
+                // Member access
+            }
+            else if (this.match(TokenType.LeftBracket))
+            {
+                // Array access
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    private parseExpression(): ExpressionNode {
+        return this.parsePrimary();
+    }
+
     private parseVariable(): VariableDeclarationNode
     {
         const qualifiers = this.parseQualifiers();
@@ -177,25 +209,25 @@ export class Parser {
 
         let initializer: ExpressionNode | undefined;
 
-        // if (this.match(TokenType.Equal))
-        // {
-        //     initializer = this.parseExpression();
-        // }
-
-        // this.consume(
-        //     TokenType.Semicolon,
-        //     "Expected ';' after variable declaration."
-        // );
-
-        while (
-            !this.check(TokenType.Semicolon) &&
-            !this.isAtEnd()
-        )
+        if (this.match(TokenType.Equal))
         {
-            this.advance();
+            initializer = this.parseExpression();
         }
 
-        this.match(TokenType.Semicolon);
+        this.consume(
+            TokenType.Semicolon,
+            "Expected ';' after variable declaration."
+        );
+
+        // while (
+        //     !this.check(TokenType.Semicolon) &&
+        //     !this.isAtEnd()
+        // )
+        // {
+        //     this.advance();
+        // }
+
+        // this.match(TokenType.Semicolon);
 
         return {
             kind: "VariableDeclaration",

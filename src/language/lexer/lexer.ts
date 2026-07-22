@@ -81,6 +81,30 @@ export class Lexer {
             case '/':
                 if (this.match('='))
                     return this.makeToken(TokenType.SlashEqual);
+
+                // Ignore COMMENTS
+                if (this.match('/')) {
+                    while(!this.isAtEnd() && this.peek() !== '\n') {
+                        this.advance();
+                    }
+                    break;
+                }
+
+                if (this.match('*'))
+                {
+                    while (!this.isAtEnd())
+                    {
+                        if (this.peek() === '*' && this.peekNext() === '/')
+                        {
+                            this.advance(); // *
+                            this.advance(); // /
+                            break;
+                        }
+                        this.advance();
+                    }
+                    break;
+                }
+                    
                 return this.makeToken(TokenType.Slash);
 
             case '=':

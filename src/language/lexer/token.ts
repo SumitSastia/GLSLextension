@@ -66,6 +66,7 @@ export enum TokenType {
 
     // Preprocessor
     Hash,
+    Comment,
 
     // End
     EOF,
@@ -73,8 +74,7 @@ export enum TokenType {
     IntegerLiteral,
     FloatLiteral,
     
-    Unknown,
-    Int
+    Unknown
 }
 
 export interface Token {
