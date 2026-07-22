@@ -71,6 +71,10 @@ export type StatementNode =
 export interface BlockNode extends ASTNode
 {
     kind: "BlockNode";
+
+    leftBrace: Token;
+    rightBrace: Token;
+
     statements: StatementNode[];
 }
 

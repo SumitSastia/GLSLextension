@@ -132,9 +132,9 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
                     break;
 
                 case "FunctionDeclaration":
-                    if (declaration.name.startsWith(currentWord))
+                    if (declaration.name.lexeme.startsWith(currentWord))
                     {
-                        const item = new vscode.CompletionItem(declaration.name, vscode.CompletionItemKind.Function);
+                        const item = new vscode.CompletionItem(declaration.name.lexeme, vscode.CompletionItemKind.Function);
                         items.push(item);
                     }
                     break;

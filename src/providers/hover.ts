@@ -18,6 +18,7 @@ import { sign } from "crypto";
 
 import { BlockNode } from "../language/parser/ast";
 import { Token } from "../language/lexer/token";
+import { Analyzer } from "../language/analyzer/analyzer";
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -78,6 +79,11 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         const program = parser.parse(tokens);
 
         // console.log("Parser Completed!");
+
+        const analyzer = new Analyzer(parser.getEnd());
+        analyzer.analyze(program);
+
+        // console.log("Analyzer Completed!");
 
         const range = document.getWordRangeAtPosition(position);
         if (!range) return;
@@ -155,59 +161,85 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         //     return new vscode.Hover(md);
         // }
 
-        for (const declaration of program.declarations) {
+        // for (const declaration of program.declarations) {
 
-            switch (declaration.kind)
-            {
-                // Global Variables
+        //     switch (declaration.kind)
+        //     {
+        //         // Global Variables
+        //         case "VariableDeclaration":
+
+        //             if (declaration.name.lexeme === word)
+        //             {
+        //                 if (this.outOfScope(declaration.name, position)) continue;
+        //                 md.appendCodeblock(`${declaration.type.lexeme} ` + declaration.name.lexeme, "glsl");
+        //                 return new vscode.Hover(md);
+        //             }
+        //             break;
+
+        //         // Block Scope
+        //         case "FunctionDeclaration":
+                    
+        //             if (declaration.name.lexeme === word)
+        //             {
+        //                 if (this.outOfScope(declaration.name, position)) continue;
+        //                 const signature = `${declaration.returnType} ${declaration.name.lexeme}(` +
+        //                     declaration.parameters
+        //                     .map(p => `${p.type.lexeme} ${p.name.lexeme}`)
+        //                     .join(", ") +
+        //                 ")";
+
+        //                 md.appendCodeblock(signature, "glsl");
+        //                 return new vscode.Hover(md);
+        //             }
+
+        //             const md2 = this.checkBlock(declaration.body.block, word);
+        //             if (md2) return new vscode.Hover(md2);
+        //             break;
+
+        //         case "StructDeclaration":
+                    
+        //             if (declaration.name.lexeme === word)
+        //             {
+        //                 if (this.outOfScope(declaration.name, position)) continue;
+        //                 md.appendCodeblock(`struct ` + declaration.name.lexeme, "glsl");
+        //                 return new vscode.Hover(md);
+        //             }
+
+        //             // for (const member of declaration.members) {
+        //             //     if (member.name.lexeme === word)
+        //             //     {
+        //             //         if (this.outOfScope(member.name, position)) continue;
+        //             //         md.appendCodeblock(`${member.type.lexeme} ${declaration.name.lexeme}::` + member.name.lexeme, "glsl");
+        //             //         return new vscode.Hover(md);
+        //             //     }
+        //             // }
+        //             break;
+        //     }
+        // }
+
+        const scope = analyzer.findScope(position);
+        const node = scope.lookup(word);
+
+        if (node) {
+            switch (node.kind) {
+                
                 case "VariableDeclaration":
+                    
+                    if (this.outOfScope(node.name, position)) break;
+                    md.appendCodeblock(`${node.type.lexeme} ` + node.name.lexeme, "glsl");
+                    return new vscode.Hover(md);
 
-                    if (declaration.name.lexeme === word)
-                    {
-                        if (this.outOfScope(declaration.name, position)) continue;
-                        md.appendCodeblock(`${declaration.type.lexeme} ` + declaration.name.lexeme, "glsl");
-                        return new vscode.Hover(md);
-                    }
-                    break;
-
-                // Block Scope
                 case "FunctionDeclaration":
-                    
-                    if (declaration.name.lexeme === word)
-                    {
-                        if (this.outOfScope(declaration.name, position)) continue;
-                        const signature = `${declaration.returnType} ${declaration.name.lexeme}(` +
-                            declaration.parameters
-                            .map(p => `${p.type.lexeme} ${p.name.lexeme}`)
-                            .join(", ") +
-                        ")";
 
-                        md.appendCodeblock(signature, "glsl");
-                        return new vscode.Hover(md);
-                    }
+                    if (this.outOfScope(node.name, position)) break;
+                    const signature = `${node.returnType} ${node.name.lexeme}(` +
+                        node.parameters
+                        .map(p => `${p.type.lexeme} ${p.name.lexeme}`)
+                        .join(", ") +
+                    ")";
 
-                    const md2 = this.checkBlock(declaration.body.block, word);
-                    if (md2) return new vscode.Hover(md2);
-                    break;
-
-                case "StructDeclaration":
-                    
-                    if (declaration.name.lexeme === word)
-                    {
-                        if (this.outOfScope(declaration.name, position)) continue;
-                        md.appendCodeblock(`struct ` + declaration.name.lexeme, "glsl");
-                        return new vscode.Hover(md);
-                    }
-
-                    // for (const member of declaration.members) {
-                    //     if (member.name.lexeme === word)
-                    //     {
-                    //         if (this.outOfScope(member.name, position)) continue;
-                    //         md.appendCodeblock(`${member.type.lexeme} ${declaration.name.lexeme}::` + member.name.lexeme, "glsl");
-                    //         return new vscode.Hover(md);
-                    //     }
-                    // }
-                    break;
+                    md.appendCodeblock(signature, "glsl");
+                    return new vscode.Hover(md);
             }
         }
 

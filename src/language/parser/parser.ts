@@ -22,8 +22,11 @@ import { Func } from "mocha";
 export class Parser {
 
     private tokens: Token[] = [];
-
     private current = 0;
+
+    getEnd(): Token {
+        return this.tokens[this.tokens.length - 2];
+    }
 
     private peek(): Token
     {
@@ -209,25 +212,25 @@ export class Parser {
 
         let initializer: ExpressionNode | undefined;
 
-        if (this.match(TokenType.Equal))
-        {
-            initializer = this.parseExpression();
-        }
-
-        this.consume(
-            TokenType.Semicolon,
-            "Expected ';' after variable declaration."
-        );
-
-        // while (
-        //     !this.check(TokenType.Semicolon) &&
-        //     !this.isAtEnd()
-        // )
+        // if (this.match(TokenType.Equal))
         // {
-        //     this.advance();
+        //     initializer = this.parseExpression();
         // }
 
-        // this.match(TokenType.Semicolon);
+        // this.consume(
+        //     TokenType.Semicolon,
+        //     "Expected ';' after variable declaration."
+        // );
+
+        while (
+            !this.check(TokenType.Semicolon) &&
+            !this.isAtEnd()
+        )
+        {
+            this.advance();
+        }
+
+        this.match(TokenType.Semicolon);
 
         return {
             kind: "VariableDeclaration",
@@ -315,7 +318,7 @@ export class Parser {
 
     private parseBlock(): BlockNode {
 
-        this.consume(
+        const leftBrace = this.consume(
             TokenType.LeftBrace,
             "Expected '{'."
         );
@@ -341,13 +344,15 @@ export class Parser {
             }
         }
 
-        this.consume(
+        const rightBrace = this.consume(
             TokenType.RightBrace,
             "Expected '}'."
         );
 
         return {
             kind: "BlockNode",
+            leftBrace,
+            rightBrace,
             statements
         };
     }
