@@ -46,4 +46,24 @@ export class Scope
 
         return null;
     }
+
+    lookupCompletionItem(word: string): string[]
+    {
+        let scope: Scope | undefined = this;
+        const names: string[] = [];
+
+        while (scope)
+        {
+            for (const declaration of scope.declarations.values()) {
+
+                if (declaration.name.lexeme.startsWith(word)) {
+                    names.push(declaration.name.lexeme);
+                };
+            }
+
+            scope = scope.parent;
+        }
+
+        return names;
+    }
 }
