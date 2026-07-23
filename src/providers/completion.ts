@@ -12,6 +12,7 @@ import { QUALIFIERS } from "../language/qualifiers";
 
 import { Lexer } from "../language/lexer/lexer";
 import { Parser } from "../language/parser/parser";
+import { TokenType } from "../language/lexer/token";
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -21,6 +22,8 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
         document: vscode.TextDocument,
         position: vscode.Position
     ): vscode.CompletionItem[] {
+
+        // console.log("Completion called");
 
         const line = document.lineAt(position.line).text;
         const beforeCursor = line.substring(0, position.character);
@@ -112,12 +115,23 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
         /////////////////////////////////////////////////////////////////////////////////
 
         const source = document.getText();
-        
+
         const lexer = new Lexer();
         const tokens = lexer.tokenize(source);
 
+        console.log(
+            tokens.slice(-10).map(t => ({
+                lexeme: t.lexeme,
+                type: TokenType[t.type]
+            }))
+        );
+
+        // console.log("Lexer Completed!");
+
         const parser = new Parser();
         const program = parser.parse(tokens);
+
+        // console.log("Parser Completed!");
 
         for (const declaration of program.declarations) {
         
@@ -148,54 +162,11 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
                     break;
             }
         }
-
+        
+        // console.log("Completion finished");
 
         return items;
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-// import { Lexer } from "../language/lexer/lexer"
-// import { TokenType } from "../language/lexer/token";
-// import { Parser } from "../language/parser/parser";
-
-// const lexer = new Lexer();
-// const parser = new Parser();
-
-// const source = `
-// vec3 color;
-// float intensity = 0.5;
-
-// struct Student {
-
-//     int id;
-//     float name;
-//     vec3 direction;
-// };
-
-// int randomFloat(float num) {
-// }
-
-// void main()
-// {
-//     vec3 color;
-
-//     if(true)
-//     {
-//         color.x = 1.0;
-//     }
-// }
-// `;
-
-// const tokens = lexer.tokenize(source);
-// const node = parser.parse(tokens);
-
-// console.log(node);
-
-// for (const token of tokens) {
-
-//     console.log(
-//         TokenType[token.type], `"${token.lexeme}"`
-//     );
-// }

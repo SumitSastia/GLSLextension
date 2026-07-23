@@ -17,8 +17,9 @@ import { sign } from "crypto";
 ///////////////////////////////////////////////////////////////////////////////
 
 import { BlockNode } from "../language/parser/ast";
-import { Token } from "../language/lexer/token";
+import { Token, TokenType } from "../language/lexer/token";
 import { Analyzer } from "../language/analyzer/analyzer";
+import { Console } from "console";
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -218,7 +219,10 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         // }
 
         const scope = analyzer.findScope(position);
+        // console.log("scope found!");
         const node = scope.lookup(word);
+
+        // console.log("scope.lookup completed!");
 
         if (node) {
             switch (node.kind) {
@@ -240,6 +244,9 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
 
                     md.appendCodeblock(signature, "glsl");
                     return new vscode.Hover(md);
+
+                default:
+                    return null;
             }
         }
 

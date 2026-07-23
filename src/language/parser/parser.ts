@@ -210,7 +210,7 @@ export class Parser {
         const type = this.advance();
         const name = this.consume(TokenType.Identifier, "Expected a variable name.");
 
-        let initializer: ExpressionNode | undefined;
+        // let initializer: ExpressionNode | undefined;
 
         // if (this.match(TokenType.Equal))
         // {
@@ -236,8 +236,7 @@ export class Parser {
             kind: "VariableDeclaration",
             qualifiers,
             type,
-            name,
-            initializer
+            name
         };
     }
 
@@ -303,7 +302,8 @@ export class Parser {
 
         while (
             !this.check(TokenType.Semicolon) &&
-            !this.check(TokenType.RightBrace)
+            !this.check(TokenType.RightBrace) &&
+            !this.isAtEnd()
         )
         {
             this.advance();
@@ -340,6 +340,13 @@ export class Parser {
             }
             else
             {
+                // console.log(
+                //     "NOT variable:",
+                //     this.peek().lexeme,
+                //     this.peekOffset(1)?.lexeme,
+                //     this.peekOffset(2)?.lexeme
+                // );
+
                 statements.push(this.skipStatement());
             }
         }
@@ -451,12 +458,11 @@ export class Parser {
         }
 
         // No next Token (Should be Datatype)
-        if (!this.peekOffset(1))
+        if (!this.peekOffset(1) || !this.peekOffset(2)) {
+            
+            this.advance();
             return null;
-
-        // No next Token after next Token (Should be Indentifier)
-        if (!this.peekOffset(2))
-            return null;
+        }
 
         if (this.peekOffset(1).type != TokenType.Identifier)
         {
