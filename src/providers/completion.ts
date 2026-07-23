@@ -120,61 +120,26 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
         const lexer = new Lexer();
         const tokens = lexer.tokenize(source);
 
-        console.log(
-            tokens.slice(-10).map(t => ({
-                lexeme: t.lexeme,
-                type: TokenType[t.type]
-            }))
-        );
-
-        // console.log("Lexer Completed!");
+        // console.log("COMPLETION: Lexer Completed!");
 
         const parser = new Parser();
         const program = parser.parse(tokens);
 
-        // console.log("Parser Completed!");
+        // console.log("COMPLETION: Parser Completed!");
 
         const analyzer = new Analyzer(parser.getEnd());
         analyzer.analyze(program);
+
+        // console.log("COMPLETION: Analyzer Completed!");
 
         const scope = analyzer.findScope(position);
         const names = scope.lookupCompletionItem(currentWord);
 
         for (const name of names) {
-            
+
             const item = new vscode.CompletionItem(name, vscode.CompletionItemKind.Variable);
             items.push(item);
         }
-
-        // for (const declaration of program.declarations) {
-        
-        //     switch (declaration.kind)
-        //     {
-        //         case "VariableDeclaration":
-        //             if (declaration.name.lexeme.startsWith(currentWord))
-        //             {
-        //                 const item = new vscode.CompletionItem(declaration.name.lexeme, vscode.CompletionItemKind.Variable);
-        //                 items.push(item);
-        //             }
-        //             break;
-
-        //         case "FunctionDeclaration":
-        //             if (declaration.name.lexeme.startsWith(currentWord))
-        //             {
-        //                 const item = new vscode.CompletionItem(declaration.name.lexeme, vscode.CompletionItemKind.Function);
-        //                 items.push(item);
-        //             }
-        //             break;
-                
-        //         case "StructDeclaration":
-        //             if (declaration.name.lexeme.startsWith(currentWord))
-        //             {
-        //                 const item = new vscode.CompletionItem(declaration.name.lexeme, vscode.CompletionItemKind.Struct);
-        //                 items.push(item);
-        //             }
-        //             break;
-        //     }
-        // }
         
         // console.log("Completion finished");
 

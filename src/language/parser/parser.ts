@@ -1,6 +1,5 @@
 import { Token, TokenType } from "../lexer/token";
 import {
-    ASTNode,
     ProgramNode,
     VariableDeclarationNode,
     FunctionDeclarationNode,
@@ -13,11 +12,13 @@ import {
     BlockNode,
     ExpressionNode,
     IdentifierNode,
-    LiteralNode
+    LiteralNode,
+    LayoutNode,
+    LayoutQualifierNode,
+    UniformBlockNode
 } from "./ast";
 
 import { GLSL_QUALIFIERS } from "../keywords";
-import { Func } from "mocha";
 
 export class Parser {
 
@@ -123,11 +124,11 @@ export class Parser {
 
         while (true)
         {
-            if (this.peek().lexeme == "layout")
-            {
-                this.advance();
-                continue;
-            }
+            // if (this.peek().lexeme == "layout")
+            // {
+            //     this.advance();
+            //     continue;
+            // }
 
             if (this.isQualifier(this.peek()))
             {
@@ -489,10 +490,9 @@ export class Parser {
                 // return this.parsePrecision();
 
             case "layout":
-                // return this.parseLayoutDeclaration();
 
-            case "buffer":
-                // return this.parseBufferBlock();
+                this.parseLayout();
+                return this.parseUniformLayout();
 
             case "subroutine":
                 // return this.parseSubroutine();
@@ -528,5 +528,107 @@ export class Parser {
         return new Error(
             `[Line ${token.line}] ${message}`
         );
+    }
+
+    private parseLayout() {
+
+        this.consume(TokenType.Keyword, "Expected 'layout'.");
+
+        this.consume(
+            TokenType.LeftParen,
+            "Expected '(' after 'layout'."
+        );
+
+        let depth = 1;
+
+        while (!this.isAtEnd() && depth > 0)
+        {
+            if (this.match(TokenType.LeftParen))
+            {
+                depth++;
+                continue;
+            }
+
+            if (this.match(TokenType.RightParen))
+            {
+                depth--;
+                continue;
+            }
+
+            this.advance();
+        }
+
+        if (depth != 0)
+        {
+            throw this.error(
+                this.peek(),
+                "Expected ')' after layout qualifier."
+            );
+        }
+    }
+
+    private parseUniformLayout(): DeclarationNode {
+
+        const qualifier = this.advance(); // consume in/uniform/buffer
+        const type = this.advance(); // maybe Datatype (Variable) or Identifier (Block)
+        
+        // Block (std140 or std430)
+        if (
+            (qualifier.lexeme == "uniform" || qualifier.lexeme == "buffer") &&
+            this.check(TokenType.LeftBrace)
+        )
+        {
+            return this.parseUniformBlock(type);
+        }
+
+        const name = this.consume(TokenType.Identifier, "Expected a variable name.");
+
+        while (
+            !this.check(TokenType.Semicolon) &&
+            !this.isAtEnd()
+        )
+        {
+            this.advance();
+        }
+
+        this.match(TokenType.Semicolon);
+
+        return {
+            kind: "VariableDeclaration",
+            qualifiers: [],
+            name,
+            type
+        };
+    }
+
+    private parseUniformBlock(name: Token): UniformBlockNode
+    {
+        this.consume(
+            TokenType.LeftBrace,
+            "Expected '{'."
+        );
+
+        const members: VariableDeclarationNode[] = [];
+
+        while (!this.check(TokenType.RightBrace))
+        {
+            members.push(this.parseVariable());
+        }
+
+        this.consume(
+            TokenType.RightBrace,
+            "Expected '}'."
+        );
+
+        this.consume(
+            TokenType.Semicolon,
+            "Expected ';' after uniform block."
+        );
+
+        return {
+            kind: "UniformBlock",
+            name,
+            members
+        };
     }
 }

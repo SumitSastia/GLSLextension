@@ -132,31 +132,19 @@ export class Analyzer
             switch(node.kind) {
 
                 case "FunctionDeclaration":
-
-                    // const symbolFunc: Symbol = {
-                    //     name: node.name,
-                    //     kind: SymbolKind.Function,
-                    //     type: GLSLType.Function
-                    // };
                     
                     this.globalScope.add(node);
                     this.visitFunction(node);
                     break;
 
-                // case "StructDeclaration":
-                    
-                //     const symbolStruct: Symbol = {
-                //         name: node.name.lexeme,
-                //         kind: SymbolKind.Struct,
-                //         type: GLSLType.Struct
-                //     };
-
-                //     this.globalScope.add(symbolStruct);
-                //     this.visitStruct(node);
-                //     break;
-
                 case "VariableDeclaration":
                     this.addVariable(node);
+                    break;
+
+                case "UniformBlock":
+                    for (const variable of node.members) {
+                        this.addVariable(variable);
+                    }
                     break;
             }
         }

@@ -2,13 +2,18 @@
   "name": "glslextension",
   "displayName": "GLSLextension",
   "description": "GLSL shader syntax highlighter",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.119.0"
   },
   "categories": [
     "Other"
   ],
+  "license": "LICENSE",
+  "repository": {
+		"type": "git",
+		"url": "https://github.com/SumitSastia/GLSLextension.git"
+	},
   "activationEvents": [
   ],
   "main": "./out/extension.js",
@@ -29,7 +34,9 @@
         "id": "glsl",
         "aliases": [
           "GLSL",
-          "glsl"
+          "glsl",
+          "OpenGL",
+          "shader"
         ],
         "extensions": [
           ".vs",

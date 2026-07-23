@@ -33,15 +33,34 @@ export type ExpressionNode =
 
 // }
 
+export interface LayoutQualifierNode extends ASTNode {
+
+    kind: "LayoutQualifier";
+    name: Token;
+    value?: ExpressionNode;
+}
+
+export type LayoutNode =
+    | LayoutQualifierNode
+    | Token[];
+
 export interface UnknownStatementNode extends ASTNode {
     kind: "Unknown";
+}
+
+export interface UniformBlockNode extends ASTNode {
+
+    kind: "UniformBlock";
+
+    name: Token;
+    members: VariableDeclarationNode[];
 }
 
 export interface VariableDeclarationNode extends ASTNode
 {
     kind: "VariableDeclaration";
-
-    qualifiers: Token[];
+    
+    qualifiers: LayoutNode;
     type: Token;
     name: Token;
     initializer?: ExpressionNode;
@@ -94,7 +113,8 @@ export interface StructDeclarationNode extends ASTNode
 export type DeclarationNode =
     | VariableDeclarationNode
     | FunctionDeclarationNode
-    | StructDeclarationNode;
+    | StructDeclarationNode
+    | UniformBlockNode;
 
 export interface ProgramNode extends ASTNode
 {

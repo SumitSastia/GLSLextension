@@ -71,21 +71,6 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
 
         // console.log("Checking!!");
 
-        const lexer = new Lexer();
-        const tokens = lexer.tokenize(source);
-
-        // console.log("Lexer Completed!");
-
-        const parser = new Parser();
-        const program = parser.parse(tokens);
-
-        // console.log("Parser Completed!");
-
-        const analyzer = new Analyzer(parser.getEnd());
-        analyzer.analyze(program);
-
-        // console.log("Analyzer Completed!");
-
         const range = document.getWordRangeAtPosition(position);
         if (!range) return;
 
@@ -218,36 +203,55 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
         //     }
         // }
 
-        const scope = analyzer.findScope(position);
-        // console.log("scope found!");
-        const node = scope.lookup(word);
+        try {
+            const lexer = new Lexer();
+            const tokens = lexer.tokenize(source);
 
-        // console.log("scope.lookup completed!");
+            // console.log("HOVER: Lexer Completed!");
 
-        if (node) {
-            switch (node.kind) {
-                
-                case "VariableDeclaration":
+            const parser = new Parser();
+            const program = parser.parse(tokens);
+
+            // console.log("HOVER: Parser Completed!");
+
+            const analyzer = new Analyzer(parser.getEnd());
+            analyzer.analyze(program);
+
+            // console.log("HOVER: Analyzer Completed!");
+
+            const scope = analyzer.findScope(position);
+            // console.log("scope found!");
+            const node = scope.lookup(word);
+            // console.log("scope.lookup completed!");
+
+            if (node) {
+                switch (node.kind) {
                     
-                    if (this.outOfScope(node.name, position)) break;
-                    md.appendCodeblock(`${node.type.lexeme} ` + node.name.lexeme, "glsl");
-                    return new vscode.Hover(md);
+                    case "VariableDeclaration":
+                        
+                        if (this.outOfScope(node.name, position)) break;
+                        md.appendCodeblock(`${node.type.lexeme} ` + node.name.lexeme, "glsl");
+                        return new vscode.Hover(md);
 
-                case "FunctionDeclaration":
+                    case "FunctionDeclaration":
 
-                    if (this.outOfScope(node.name, position)) break;
-                    const signature = `${node.returnType} ${node.name.lexeme}(` +
-                        node.parameters
-                        .map(p => `${p.type.lexeme} ${p.name.lexeme}`)
-                        .join(", ") +
-                    ")";
+                        if (this.outOfScope(node.name, position)) break;
+                        const signature = `${node.returnType} ${node.name.lexeme}(` +
+                            node.parameters
+                            .map(p => `${p.type.lexeme} ${p.name.lexeme}`)
+                            .join(", ") +
+                        ")";
 
-                    md.appendCodeblock(signature, "glsl");
-                    return new vscode.Hover(md);
+                        md.appendCodeblock(signature, "glsl");
+                        return new vscode.Hover(md);
 
-                default:
-                    return null;
+                    default:
+                        return null;
+                }
             }
+        }
+        catch (e) {
+            console.log("Hover failed, ", e);
         }
 
         return null;
