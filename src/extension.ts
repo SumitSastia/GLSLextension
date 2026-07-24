@@ -3,10 +3,24 @@ import { GLSLCompletionProvider } from './providers/completion';
 import { GLSLSignatureHelpProvider } from './providers/signaturehelp';
 import { GLSLHoverProvider } from './providers/hover';
 
+import { diagnosticsCollection, getAnalyzer } from './language/analyzer/call';
+
 export function activate(context: vscode.ExtensionContext) {
 
 	// Extenstion Activated
 	console.log('Congratulations, your extension "glslextension" is now active!');
+
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeTextDocument(event =>
+		{
+			const document = event.document;
+
+			if (document.languageId !== "glsl")
+				return;
+
+			getAnalyzer(document);
+		})
+	);
 
 	const completionProvider = vscode.languages.registerCompletionItemProvider(
 		"glsl",
@@ -52,6 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(completionProvider);
 	context.subscriptions.push(signatureHelpProvider);
 	context.subscriptions.push(hoverProvider);
+	context.subscriptions.push(diagnosticsCollection);
 }
 
 export function deactivate() {}

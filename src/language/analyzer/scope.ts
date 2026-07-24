@@ -1,3 +1,4 @@
+import { Token } from "../lexer/token";
 import { DeclarationNode, StructDeclarationNode } from "../parser/ast";
 
 export interface Cords {
@@ -67,10 +68,25 @@ export class Scope
         return names;
     }
 
-    lookupType(name: string): DeclarationNode | null {
+    lookupNode(name: string): DeclarationNode | null {
 
-        const struct = this.declarations.get(name);
-        if (struct) return struct;
+        const node = this.declarations.get(name);
+        if (node) return node;
+
+        return null;
+    }
+
+    lookupType(name: string): Token | null {
+
+        const node = this.lookup(name);
+
+        if (node) {
+            switch(node.kind) {
+
+                case "VariableDeclaration":
+                    return node.type;
+            }
+        }
 
         return null;
     }

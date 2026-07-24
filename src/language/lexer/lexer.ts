@@ -87,7 +87,7 @@ export class Lexer {
                     while(!this.isAtEnd() && this.peek() !== '\n') {
                         this.advance();
                     }
-                    break;
+                    return null;
                 }
 
                 if (this.match('*'))
@@ -100,9 +100,16 @@ export class Lexer {
                             this.advance(); // /
                             break;
                         }
+
+                        if (this.peek() === '\n')
+                        {
+                            this.line++;
+                            this.column = 0;
+                        }
+                        
                         this.advance();
                     }
-                    break;
+                    return null;
                 }
                     
                 return this.makeToken(TokenType.Slash);

@@ -1,13 +1,22 @@
 import * as vscode from "vscode";
 
-import { BlockNode, DeclarationNode, ExpressionNode, FunctionBodyNode, FunctionDeclarationNode, IdentifierNode, LiteralNode, ParameterNode, ProgramNode, StatementNode, StructDeclarationNode, VariableDeclarationNode } from "../parser/ast";
+import { AssignmentStatementNode, BlockNode, FunctionBodyNode, FunctionDeclarationNode, ParameterNode, ProgramNode, StatementNode, StructDeclarationNode, VariableAccess, VariableDeclarationNode } from "../parser/ast";
 import { Cords, Scope } from "./scope";
 import { Token } from "../lexer/token";
+
+import { BUILTIN_STRUCTS } from "../datatypes";
+
+export interface AnalyzerError
+{
+    token: Token;
+    message: string;
+}
 
 export class Analyzer
 {
     private globalScope: Scope;
     private currentScope: Scope;
+    private errors: AnalyzerError[] = [];
 
     constructor(endToken: Token) {
         
@@ -69,7 +78,8 @@ export class Analyzer
             kind: "VariableDeclaration",
             qualifiers: parameter.qualifiers,
             type: parameter.type,
-            name: parameter.name
+            name: parameter.name,
+            access: parameter.access
         };
 
         this.addVariable(variable);
@@ -116,10 +126,6 @@ export class Analyzer
 
         const start = scope.start;
         const end = scope.end;
-
-        // if (!start || !end) {
-        //     return true;
-        // }
 
         const afterStart =
             position.line > start.line ||
@@ -208,159 +214,40 @@ export class Analyzer
             case "VariableDeclaration":
                 this.addVariable(statement);
                 break;
+
+            case "AssignmentStatement":
+                this.checkAssignment(statement);
+                break;
         }
     }
 
-    // private addParameter(parameter: ParameterNode) {
+    private checkAssignment(statement: AssignmentStatementNode): boolean {
 
-    //     const symbolVar: Symbol = {
-    //         name: parameter.name.lexeme,
-    //         kind: SymbolKind.Parameter,
-    //         type: this.resolveType(parameter.type)
-    //     };
-    //     this.globalScope.add(symbolVar);
-    // }
+        const variable = this.currentScope.lookup(statement.left.name.lexeme);
 
-    // private visitFunction(statement: FunctionDeclarationNode) {
+        if (
+            variable &&
+            variable.kind == "VariableDeclaration" &&
+            variable.access == VariableAccess.READ_ONLY
+        ) {
+            // console.log("ERROR: Assigning on Read-only Variable!");
 
-    //     this.pushScope();
+            this.errors.push({
+                token: statement.left.name,
+                message: "Cannot assign to read-only variable."
+            });
+            return false;
+        }
 
-    //     // parameters
-    //     for (const parameter of statement.parameters)
-    //     {
-    //         this.addParameter(parameter);
-    //     }
+        return true;
+    }
 
-    //     this.visitBlock(statement.body.block);
-    //     this.popScope();
-    // }
+    lookupStructType(type: string): string[] | null {
 
-    // private visitStruct(statement: StructDeclarationNode) {
+        return BUILTIN_STRUCTS.get(type) ?? null;
+    }
 
-    //     // this.pushScope();
-
-    //     // for (const member of statement.members) {
-    //     //     this.addVariable(member);
-    //     // }
-
-    //     // this.popScope();
-
-    //     const structSymbol = new StructSymbol(statement.name.lexeme);
-
-    //     for (const member of statement.members) {
-
-    //         const symbolVar: Symbol = {
-    //             name: member.name.lexeme,
-    //             kind: SymbolKind.Variable,
-    //             type: this.resolveType(member.type)
-    //         };
-
-    //         structSymbol.members.set(member.name.lexeme, symbolVar);
-    //     }
-
-    //     // console.log(structSymbol);
-    //     // console.log(structSymbol.constructor.name);
-
-    //     this.globalScope.add(structSymbol);
-
-    //     const stored = this.globalScope.lookup("Light")!;
-
-    //     console.log(
-    //         this.globalScope.symbols.get("Light")
-    //     );
-    // }
-
-    // private visitStatement(statement: StatementNode) {
-
-    //     switch (statement.kind) {
-
-    //         case "BlockNode":
-    //             this.visitBlock(statement);
-    //             break;
-            
-    //         case "VariableDeclaration":
-    //             this.visitVariable(statement);
-    //             break;
-    //     }
-    // }
-
-    // private reportError(msg: string): Error {
-    //     return new Error(`${msg}`);
-    // }
-
-    // private visitVariable(node: VariableDeclarationNode)
-    // {
-    //     this.addVariable(node);
-
-    //     // if (!node.initializer) return;
-
-    //     // const initializerType = this.visitExpression(node.initializer);
-    
-    //     // if (initializerType !== node.type.lexeme) {
-
-    //     // }
-    // }
-
-    // private visitLiteral(node: LiteralNode)
-    // {
-    //     // if (node.value.type === )
-    // }
-    
-    // // private visitExpression(node: ExpressionNode): GLSLType
-    // // {
-    // //     switch (node.kind)
-    // //     {
-    // //         case "Identifier":
-    // //             return this.visitIdentifier(node);
-
-    // //         case "Literal":
-    // //             this.visitLiteral(node);
-    // //             return this.resolveType(node.value)
-    // //     }
-
-    // //     return "";
-    // // }
-
-    // private visitIdentifier(node: IdentifierNode) {
-
-    //     const symbol = this.currentScope.lookup(node.name.lexeme);
-
-    //     if (!symbol) {
-    //         throw this.reportError(
-    //             `Unknown Indentifier ${node.name.lexeme}, at line ${node.name.line}, ${node.name.column}`
-    //         );
-    //     }
-
-    //     // Success
-    //     console.log(
-    //         `'${node.name.lexeme}' resolved to`,
-    //         symbol
-    //     );
-
-    //     // symbol.type = this.resolveType(node)
-    // }
-
-    // private resolveType(token: Token): GLSLType
-    // {
-    //     switch (token.lexeme)
-    //     {
-    //         case "int":       return GLSLType.Int;
-    //         case "float":     return GLSLType.Float;
-    //         case "bool":      return GLSLType.Bool;
-
-    //         case "vec2":      return GLSLType.Vec2;
-    //         case "vec3":      return GLSLType.Vec3;
-    //         case "vec4":      return GLSLType.Vec4;
-
-    //         case "mat2":      return GLSLType.Mat2;
-    //         case "mat3":      return GLSLType.Mat3;
-    //         case "mat4":      return GLSLType.Mat4;
-
-    //         case "sampler2D": return GLSLType.Sampler2D;
-
-    //         case "void":      return GLSLType.Void;
-    //     }
-
-    //     return GLSLType.Unknown;
-    // }
+    getErrors(): AnalyzerError[] {
+        return this.errors;
+    }
 }

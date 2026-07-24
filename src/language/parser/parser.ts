@@ -10,15 +10,24 @@ import {
     UnknownStatementNode,
     StatementNode,
     BlockNode,
-    ExpressionNode,
-    IdentifierNode,
-    LiteralNode,
-    LayoutNode,
-    LayoutQualifierNode,
-    UniformBlockNode
+    UniformBlockNode,
+    VariableAccess,
+    AssignmentStatementNode,
+    IdentifierExpressionNode
 } from "./ast";
 
 import { GLSL_QUALIFIERS } from "../keywords";
+
+export class ParseError extends Error {
+
+    constructor(
+        public readonly token: Token,
+        message: string
+    )
+    {
+        super(message);
+    }
+}
 
 export class Parser {
 
@@ -76,11 +85,7 @@ export class Parser {
             return this.advance();
 
         throw new Error(message);
-    }
-
-    private isTypeToken(token: Token): boolean
-    {
-        return token.type == TokenType.Keyword;
+        // throw new ParseError(this.peek(), message);
     }
 
     private match(...types: TokenType[]): boolean
@@ -111,10 +116,13 @@ export class Parser {
             "Expected parameter name."
         );
 
+        const access = this.determineAccess(qualifiers);
+
         return {
             qualifiers,
             type,
-            name
+            name,
+            access
         };
     }
 
@@ -124,12 +132,6 @@ export class Parser {
 
         while (true)
         {
-            // if (this.peek().lexeme == "layout")
-            // {
-            //     this.advance();
-            //     continue;
-            // }
-
             if (this.isQualifier(this.peek()))
             {
                 qualifiers.push(this.advance());
@@ -142,67 +144,50 @@ export class Parser {
         return qualifiers;
     }
 
-    private parseIdentifier(): IdentifierNode
-    {
-        return {
-            kind: "Identifier",
-            name: this.advance()
+    private parseAssignmentStatement(): AssignmentStatementNode | IdentifierExpressionNode {
+
+        const left = this.consume(
+            TokenType.Identifier,
+            "Expected Identifier."
+        );
+
+        const identifier: IdentifierExpressionNode = {
+            kind: "IdentifierExpression",
+            name: left
         };
-    }
 
-    private parseLiteral(): LiteralNode
-    {
+        if (!this.match(TokenType.Equal))
+        {
+            // console.log("variable; found.");
+
+            this.consume(
+                TokenType.Semicolon,
+                "Expected ';'."
+            );
+
+            return identifier;
+        }
+
+        // Skip everything on the RHS until ';'
+        while (
+            !this.check(TokenType.Semicolon) &&
+            !this.isAtEnd()
+        )
+        {
+            this.advance();
+        }
+
+        // console.log("assignment found.");
+
+        this.consume(
+            TokenType.Semicolon,
+            "Expected ';'."
+        );
+
         return {
-            kind: "Literal",
-            value: this.advance()
+            kind: "AssignmentStatement",
+            left: identifier
         };
-    }
-
-    private parsePrimary(): ExpressionNode
-    {
-        if (this.check(TokenType.Identifier))
-        {
-            return this.parseIdentifier();
-        }
-
-        if (this.check(TokenType.IntegerLiteral) ||
-            this.check(TokenType.FloatLiteral))
-        {
-            return this.parseLiteral();
-        }
-
-        throw this.error(this.peek(), "Expected expression.");
-    }
-
-    private parsePostfix(): ExpressionNode
-    {
-        let expr = this.parsePrimary();
-
-        while (true)
-        {
-            if (this.match(TokenType.LeftParen))
-            {
-                // Function call
-            }
-            else if (this.match(TokenType.Dot))
-            {
-                // Member access
-            }
-            else if (this.match(TokenType.LeftBracket))
-            {
-                // Array access
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return expr;
-    }
-
-    private parseExpression(): ExpressionNode {
-        return this.parsePrimary();
     }
 
     private parseVariable(): VariableDeclarationNode
@@ -210,18 +195,6 @@ export class Parser {
         const qualifiers = this.parseQualifiers();
         const type = this.advance();
         const name = this.consume(TokenType.Identifier, "Expected a variable name.");
-
-        // let initializer: ExpressionNode | undefined;
-
-        // if (this.match(TokenType.Equal))
-        // {
-        //     initializer = this.parseExpression();
-        // }
-
-        // this.consume(
-        //     TokenType.Semicolon,
-        //     "Expected ';' after variable declaration."
-        // );
 
         while (
             !this.check(TokenType.Semicolon) &&
@@ -233,12 +206,43 @@ export class Parser {
 
         this.match(TokenType.Semicolon);
 
+        const access = this.determineAccess(qualifiers);
+
+        if (qualifiers.length > 0)
+            console.log(qualifiers[0].lexeme + " " + type.lexeme + " " + name.lexeme);
+        // else
+        //     console.log(type.lexeme + " " + name.lexeme);
+
         return {
             kind: "VariableDeclaration",
             qualifiers,
             type,
+            access,
             name
         };
+    }
+
+    private determineAccess(qualifiers: Token[]): VariableAccess {
+
+        // console.log("Determining");
+
+        for (const qualifier of qualifiers) {
+
+            switch(qualifier.lexeme) {
+
+                case "const":
+                case "in":
+                case "uniform":
+                    return VariableAccess.READ_ONLY;
+
+                case "out":
+                case "buffer":
+                    return VariableAccess.READ_WRITE;
+            }
+        }
+
+
+        return VariableAccess.READ_WRITE;
     }
 
     private isVariableDeclaration(): boolean {
@@ -339,15 +343,15 @@ export class Parser {
             {
                 statements.push(this.parseVariable());
             }
+            else if (
+                this.check(TokenType.Identifier) &&
+                this.peekOffset(1).type == TokenType.Equal
+            ) {
+                const statement = this.parseAssignmentStatement();
+                if (statement.kind == "AssignmentStatement") statements.push(statement);
+            }
             else
             {
-                // console.log(
-                //     "NOT variable:",
-                //     this.peek().lexeme,
-                //     this.peekOffset(1)?.lexeme,
-                //     this.peekOffset(2)?.lexeme
-                // );
-
                 statements.push(this.skipStatement());
             }
         }
@@ -452,27 +456,41 @@ export class Parser {
 
     private parseVariableOrFunction(): DeclarationNode | null {
 
-        if (!this.check(TokenType.Keyword))
+        // if (!this.check(TokenType.Keyword))
+        // {
+        //     this.advance();
+        //     return null;
+        // }
+
+        let offset = 0;
+
+        // Skip all qualifiers
+        while (
+            this.peekOffset(offset) &&
+            this.isQualifier(this.peekOffset(offset))
+        )
         {
-            this.advance();
-            return null;
+            offset++;
         }
 
-        // No next Token (Should be Datatype)
-        if (!this.peekOffset(1) || !this.peekOffset(2)) {
-            
-            this.advance();
-            return null;
-        }
+        // Need: type + name
+        const type = this.peekOffset(offset);
+        const name = this.peekOffset(offset + 1);
 
-        if (this.peekOffset(1).type != TokenType.Identifier)
+        if (
+            !type || !name ||
+            (
+                type.type != TokenType.Keyword
+            ) ||
+            name.type != TokenType.Identifier
+        )
         {
             this.advance();
             return null;
         }
 
         // Found Function Header
-        if (this.peekOffset(2).type == TokenType.LeftParen)
+        if (this.peekOffset(offset + 2)?.type == TokenType.LeftParen)
             return this.parseFunction();
 
         // Return Variable Declaration
@@ -481,6 +499,8 @@ export class Parser {
 
     private parseDeclaration(): DeclarationNode | null
     {
+        // console.log(this.peek().lexeme);
+
         switch (this.peek().lexeme)
         {
             case "struct":
@@ -574,11 +594,11 @@ export class Parser {
         
         // Block (std140 or std430)
         if (
-            (qualifier.lexeme == "uniform" || qualifier.lexeme == "buffer") &&
             this.check(TokenType.LeftBrace)
         )
         {
-            return this.parseUniformBlock(type);
+            if (qualifier.lexeme == "buffer") return this.parseUniformBlock(type, VariableAccess.READ_WRITE);
+            return this.parseUniformBlock(type, VariableAccess.READ_ONLY);
         }
 
         const name = this.consume(TokenType.Identifier, "Expected a variable name.");
@@ -593,15 +613,18 @@ export class Parser {
 
         this.match(TokenType.Semicolon);
 
+        const access = this.determineAccess([qualifier]);
+
         return {
             kind: "VariableDeclaration",
             qualifiers: [],
             name,
+            access,
             type
         };
     }
 
-    private parseUniformBlock(name: Token): UniformBlockNode
+    private parseUniformBlock(name: Token, access: VariableAccess): UniformBlockNode
     {
         this.consume(
             TokenType.LeftBrace,
@@ -612,7 +635,10 @@ export class Parser {
 
         while (!this.check(TokenType.RightBrace))
         {
-            members.push(this.parseVariable());
+            const variable = this.parseVariable();
+            variable.access = access;
+
+            members.push(variable);
         }
 
         this.consume(

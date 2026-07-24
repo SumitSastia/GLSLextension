@@ -5,39 +5,32 @@ export interface ASTNode
     kind: string;
 }
 
-export interface LiteralNode extends ASTNode
+export interface IdentifierExpressionNode extends ASTNode
 {
-    kind: "Literal";
+    kind: "IdentifierExpression";
+    name: Token;
+}
+
+export interface LiteralExpressionNode extends ASTNode
+{
+    kind: "LiteralExpression";
     value: Token;
 }
 
-export interface IdentifierNode extends ASTNode
+export type ExpressionNode = 
+    | IdentifierExpressionNode
+    | LiteralExpressionNode;
+
+export interface AssignmentStatementNode extends ASTNode
 {
-    kind: "Identifier";
-    name: Token;
-    resolvedSymbol?: Symbol;
+    kind: "AssignmentStatement";
+    left: IdentifierExpressionNode;
 }
-
-export interface CallExpressionNode extends ASTNode
-{
-    kind: "Expression";
-}
-
-export type ExpressionNode =
-    | LiteralNode
-    | IdentifierNode
-    | CallExpressionNode;
-
-// export interface ExpressionNode extends ASTNode
-// {
-
-// }
 
 export interface LayoutQualifierNode extends ASTNode {
 
     kind: "LayoutQualifier";
     name: Token;
-    value?: ExpressionNode;
 }
 
 export type LayoutNode =
@@ -56,6 +49,11 @@ export interface UniformBlockNode extends ASTNode {
     members: VariableDeclarationNode[];
 }
 
+export enum VariableAccess {
+    READ_ONLY,
+    READ_WRITE
+}
+
 export interface VariableDeclarationNode extends ASTNode
 {
     kind: "VariableDeclaration";
@@ -63,7 +61,7 @@ export interface VariableDeclarationNode extends ASTNode
     qualifiers: LayoutNode;
     type: Token;
     name: Token;
-    initializer?: ExpressionNode;
+    access: VariableAccess;
 }
 
 export interface FunctionDeclarationNode extends ASTNode
@@ -77,14 +75,17 @@ export interface FunctionDeclarationNode extends ASTNode
 
 export interface ParameterNode
 {
-    qualifiers: Token[],
+    qualifiers: Token[];
     type: Token;
     name: Token;
+    access: VariableAccess;
 }
 
 export type StatementNode =
     | BlockNode
     | VariableDeclarationNode
+    | AssignmentStatementNode
+    | IdentifierExpressionNode
     | UnknownStatementNode;
 
 export interface BlockNode extends ASTNode

@@ -55,12 +55,7 @@ export const KEYWORDS = [
 
 export const GLSL_KEYWORDS = new Set([
     
-    "const",
-    "uniform",
     "layout",
-    "in",
-    "out",
-    "inout",
 
     "if",
     "else",
@@ -101,8 +96,9 @@ export const GLSL_KEYWORDS = new Set([
 ]);
 
 export const GLSL_QUALIFIERS = new Set([
-    "const",
+
     "uniform",
+    "const",
     "in",
     "out",
     "inout",
