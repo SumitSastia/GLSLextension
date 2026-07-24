@@ -245,6 +245,11 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
                         md.appendCodeblock(signature, "glsl");
                         return new vscode.Hover(md);
 
+                    case "StructDeclaration":
+                        if (this.outOfScope(node.name, position)) break;
+                        md.appendCodeblock(`struct ` + node.name.lexeme, "glsl");
+                        return new vscode.Hover(md);
+
                     default:
                         return null;
                 }

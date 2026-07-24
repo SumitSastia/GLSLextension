@@ -10,7 +10,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const completionProvider = vscode.languages.registerCompletionItemProvider(
 		"glsl",
-		new GLSLCompletionProvider()
+		new GLSLCompletionProvider(),
+		"."
 	);
 
 	const signatureHelpProvider = vscode.languages.registerSignatureHelpProvider(

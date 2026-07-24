@@ -133,6 +133,45 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
         // console.log("COMPLETION: Analyzer Completed!");
 
         const scope = analyzer.findScope(position);
+        
+        // If struct member lookup
+        const matchdot = beforeCursor.match(/([A-Za-z_]\w*)\.$/);
+
+        // console.log(matchdot);
+        
+        if (matchdot) {
+
+            // console.log("Found '.'");
+            
+            const objectName = matchdot[1];
+            const declaration = scope.lookupType(objectName);
+
+            // console.log(objectName);
+
+            if (declaration && declaration.kind == "VariableDeclaration") {
+
+                const name = declaration.type.lexeme;
+                const struct = analyzer.findStruct(name);
+
+                // console.log(struct);
+
+                if (struct) {
+
+                    const structItems: vscode.CompletionItem[] = [];
+
+                    for (const member of struct.members) {
+
+                        const item = new vscode.CompletionItem(member.name.lexeme, vscode.CompletionItemKind.Variable);
+                        structItems.push(item);
+                    }
+                    return structItems;
+                }
+            }
+
+            return [];
+        }
+        
+        // Normal Completion Items
         const names = scope.lookupCompletionItem(currentWord);
 
         for (const name of names) {

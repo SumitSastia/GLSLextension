@@ -57,6 +57,11 @@ export class Analyzer
         this.currentScope.add(variable);
     }
 
+    private addStruct(struct: StructDeclarationNode) {
+
+        this.currentScope.add(struct);
+    }
+
     private addParameter(parameter: ParameterNode) {
 
         const variable: VariableDeclarationNode = {
@@ -79,6 +84,14 @@ export class Analyzer
     findScope(position: vscode.Position): Scope {
 
         return this.findScopeRecursive(this.globalScope, position);
+    }
+
+    findStruct(struct: string): StructDeclarationNode | null {
+        
+        const node = this.globalScope.lookup(struct);
+        if (node && node.kind == "StructDeclaration") return node;
+
+        return null;
     }
 
     private findScopeRecursive(
@@ -145,6 +158,10 @@ export class Analyzer
                     for (const variable of node.members) {
                         this.addVariable(variable);
                     }
+                    break;
+
+                case "StructDeclaration":
+                    this.addStruct(node);
                     break;
             }
         }

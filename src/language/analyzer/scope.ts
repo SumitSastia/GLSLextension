@@ -1,4 +1,4 @@
-import { DeclarationNode } from "../parser/ast";
+import { DeclarationNode, StructDeclarationNode } from "../parser/ast";
 
 export interface Cords {
 
@@ -65,5 +65,13 @@ export class Scope
         }
 
         return names;
+    }
+
+    lookupType(name: string): DeclarationNode | null {
+
+        const struct = this.declarations.get(name);
+        if (struct) return struct;
+
+        return null;
     }
 }
