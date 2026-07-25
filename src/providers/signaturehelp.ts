@@ -1,5 +1,9 @@
 import * as vscode from "vscode";
+
 import { EXPANDED_SIGNATURES } from "../language/signatures/signatureExpander";
+import { FunctionDeclarationNode } from "../language/parser/ast";
+import { GLSLSignature } from "../language/signatures/functionFormat";
+import { USERDEFINED_FUNCTIONS } from "../language/analyzer/analyzer";
 
 function getActiveParameter(text: string): number {
 
@@ -24,6 +28,29 @@ function getActiveParameter(text: string): number {
     return commas;
 }
 
+function convertToGLSLSignature(): GLSLSignature[] {
+
+    const signatures: GLSLSignature[] = [];
+
+    for (const func of USERDEFINED_FUNCTIONS) {
+
+        signatures.push({
+            returnType: func.returnType,
+            name: func.name.lexeme,
+            description: "",
+            category: "User Defined",
+            version: "",
+
+            parameters: func.parameters.map(param => ({
+                type: param.type.lexeme,
+                name: param.name.lexeme
+            }))
+        });
+    }
+
+    return signatures;
+}
+
 export class GLSLSignatureHelpProvider implements vscode.SignatureHelpProvider {
     
     provideSignatureHelp(
@@ -41,7 +68,15 @@ export class GLSLSignatureHelpProvider implements vscode.SignatureHelpProvider {
         
         const help = new vscode.SignatureHelp();
 
-        const overloads = EXPANDED_SIGNATURES.filter(s => s.name == functionName);
+        const USERDEF_FUNCTIONS = convertToGLSLSignature();
+
+        const ALL_FUNCTIONS: GLSLSignature[] = [
+            ...EXPANDED_SIGNATURES,
+            ...USERDEF_FUNCTIONS
+        ];
+
+        const overloads = ALL_FUNCTIONS.filter(s => s.name == functionName);
+        // const overloads = EXPANDED_SIGNATURES.filter(s => s.name == functionName);
         if (overloads.length === 0) return null;
 
         for (const sign of overloads) {

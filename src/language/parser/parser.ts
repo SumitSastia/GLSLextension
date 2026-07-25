@@ -208,8 +208,8 @@ export class Parser {
 
         const access = this.determineAccess(qualifiers);
 
-        if (qualifiers.length > 0)
-            console.log(qualifiers[0].lexeme + " " + type.lexeme + " " + name.lexeme);
+        // if (qualifiers.length > 0)
+        //     console.log(qualifiers[0].lexeme + " " + type.lexeme + " " + name.lexeme);
         // else
         //     console.log(type.lexeme + " " + name.lexeme);
 

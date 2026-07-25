@@ -225,6 +225,13 @@ export class GLSLHoverProvider implements vscode.HoverProvider {
             // console.log("scope.lookup completed!");
 
             if (node) {
+
+                // console.log("cursor: " + position.line);
+                // console.log("cursor: " + position.character);
+
+                // console.log("node: " + node.name.line);
+                // console.log("node: " + node.name.column);
+
                 switch (node.kind) {
                     
                     case "VariableDeclaration":

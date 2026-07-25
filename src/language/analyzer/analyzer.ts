@@ -6,6 +6,8 @@ import { Token } from "../lexer/token";
 
 import { BUILTIN_STRUCTS } from "../datatypes";
 
+export let USERDEFINED_FUNCTIONS: FunctionDeclarationNode[] = [];
+
 export interface AnalyzerError
 {
     token: Token;
@@ -87,6 +89,7 @@ export class Analyzer
 
     analyze(programNode: ProgramNode) {
 
+        USERDEFINED_FUNCTIONS = [];
         this.collectGlobals(programNode);
         this.currentScope = this.globalScope;
     }
@@ -151,6 +154,8 @@ export class Analyzer
             switch(node.kind) {
 
                 case "FunctionDeclaration":
+                    
+                    if (node.name.lexeme !== "main") USERDEFINED_FUNCTIONS.push(node);
                     
                     this.globalScope.add(node);
                     this.visitFunction(node);
