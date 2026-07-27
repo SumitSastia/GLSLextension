@@ -8,7 +8,7 @@ import { diagnosticsCollection, getAnalyzer } from './language/analyzer/call';
 export function activate(context: vscode.ExtensionContext) {
 
 	// Extenstion Activated
-	console.log('Congratulations, your extension "glslextension" is now active!');
+	// console.log('Congratulations, your extension "glslextension" is now active!');
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(event =>

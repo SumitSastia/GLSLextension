@@ -39,6 +39,7 @@ export type LayoutNode =
 
 export interface UnknownStatementNode extends ASTNode {
     kind: "Unknown";
+    name: Token
 }
 
 export interface UniformBlockNode extends ASTNode {
@@ -115,7 +116,8 @@ export type DeclarationNode =
     | VariableDeclarationNode
     | FunctionDeclarationNode
     | StructDeclarationNode
-    | UniformBlockNode;
+    | UniformBlockNode
+    | UnknownStatementNode;
 
 export interface ProgramNode extends ASTNode
 {

@@ -1,19 +1,28 @@
 {
   "name": "glslextension",
-  "displayName": "GLSLextension",
+  "displayName": "Snow GLSL",
   "description": "GLSL shader syntax highlighter",
   "version": "1.0.0",
   "engines": {
     "vscode": "^1.119.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages"
   ],
   "license": "LICENSE",
+  "publisher": "SumitSastia",
   "repository": {
 		"type": "git",
 		"url": "https://github.com/SumitSastia/GLSLextension.git"
 	},
+  "homepage": "https://github.com/SumitSastia/GLSLextension",
+  "bugs": {
+    "url": "https://github.com/SumitSastia/GLSLextension/issues"
+  },
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
   "activationEvents": [
   ],
   "main": "./out/extension.js",

@@ -305,6 +305,13 @@ export class Parser {
 
     private skipStatement(): UnknownStatementNode {
 
+        const token: Token = {
+            type: TokenType.Unknown,
+            lexeme: "",
+            line: 0,
+            column: 0
+        };
+
         while (
             !this.check(TokenType.Semicolon) &&
             !this.check(TokenType.RightBrace) &&
@@ -317,7 +324,8 @@ export class Parser {
         this.match(TokenType.Semicolon);
 
         return {
-            kind: "Unknown"
+            kind: "Unknown",
+            name: token
         }
     }
 
@@ -590,6 +598,17 @@ export class Parser {
     private parseUniformLayout(): DeclarationNode {
 
         const qualifier = this.advance(); // consume in/uniform/buffer
+        
+        if (this.check(TokenType.Semicolon)) {
+            
+            this.advance();
+            
+            return {
+                kind: "Unknown",
+                name: qualifier
+            }
+        }
+        
         const type = this.advance(); // maybe Datatype (Variable) or Identifier (Block)
         
         // Block (std140 or std430)
