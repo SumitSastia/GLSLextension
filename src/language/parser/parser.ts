@@ -509,6 +509,18 @@ export class Parser {
     {
         // console.log(this.peek().lexeme);
 
+        // Skip #define
+        if (this.check(TokenType.Hash)) {
+            
+            const line = this.peek().line;
+
+            while (!this.isAtEnd() && this.peek().line == line) {
+                this.advance();
+            }
+
+            return null;
+        }
+
         switch (this.peek().lexeme)
         {
             case "struct":

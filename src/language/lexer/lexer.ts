@@ -55,6 +55,9 @@ export class Lexer {
             case '?':
                 return this.makeToken(TokenType.Question);
 
+            case '#':
+                return this.makeToken(TokenType.Hash);
+
             case '+':
                 if (this.match('+'))
                     return this.makeToken(TokenType.Increment);

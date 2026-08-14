@@ -56,31 +56,49 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
         const scope = analyzer.findScope(position);
         
         // If struct member lookup
-        const matchdot = beforeCursor.match(/([A-Za-z_]\w*)\.$/);
+        // const matchdot = beforeCursor.match(/([A-Za-z_]\w*)\.$/);
+
+        const matchdot = beforeCursor.match(
+            /([A-Za-z_]\w*)\.\s*([A-Za-z_]\w*)?$/
+        );
+
+        const dotContext = /\.\s*[A-Za-z_]*$/.test(beforeCursor);
 
         // console.log(matchdot);
         
+        if (dotContext) {
+            if (!matchdot) {
+                // console.log("returning");
+                return [];
+            }
+        }
+
         if (matchdot) {
 
             // console.log("Found '.'");
             const objectName = matchdot[1];
-            const builtInStruct = scope.lookupType(objectName);
-            
-            if (builtInStruct) {
+            const memberPrefix = matchdot[2] ?? "";
 
-                const builtInStructMembers = analyzer.lookupStructType(builtInStruct.lexeme);
-                
-                if (builtInStructMembers) {
-                    const structItems: vscode.CompletionItem[] = [];
-    
-                    for (const member of builtInStructMembers) {
-    
-                        const item = new vscode.CompletionItem(member, vscode.CompletionItemKind.Variable);
-                        structItems.push(item);
-                    }
-    
-                    return structItems;
+            const builtInStruct = scope.lookupType(objectName);
+
+            // Struct does not exist
+            if (!builtInStruct) return [];
+
+            const builtInStructMembers = analyzer.lookupStructType(builtInStruct.lexeme);
+            
+            // Built-in Struct
+            if (builtInStructMembers) {
+
+                const structItems: vscode.CompletionItem[] = [];
+
+                for (const member of builtInStructMembers) {
+
+                    if (!member.startsWith(memberPrefix)) continue;
+                    const item = new vscode.CompletionItem(member, vscode.CompletionItemKind.Variable);
+                    structItems.push(item);
                 }
+
+                return structItems;
             }
             
             const declaration = scope.lookupNode(objectName);
@@ -90,18 +108,28 @@ export class GLSLCompletionProvider implements vscode.CompletionItemProvider {
                 const name = declaration.type.lexeme;
                 const struct = analyzer.findStruct(name);
 
+                // console.log(name);
                 // console.log(struct);
+                // console.log("not looping");
 
                 if (struct) {
+
+                    // console.log("Found struct");
+
                     const structItems: vscode.CompletionItem[] = [];
 
                     for (const member of struct.members) {
 
+                        if (!member.name.lexeme.startsWith(memberPrefix)) continue;
                         const item = new vscode.CompletionItem(member.name.lexeme, vscode.CompletionItemKind.Variable);
                         structItems.push(item);
                     }
                     return structItems;
                 }
+
+                // console.log("struct not found");
+
+                return [];
             }
 
             return [];
